@@ -1,0 +1,1213 @@
+\chapter{Struktury danych: obiekty i tablice}
+\label{chap:4}
+  
+    
+Ten rozdział poświęcimy na rozwiązanie kilku prostych problemów. W międzyczasie opiszę dwa nowe typy danych — tablice i obiekty — oraz przybliżę Ci kilka związanych z nimi technik.
+
+    
+Rozważmy następującą sytuację: Twoja szalona ciotka Emilia, która podobno mieszka z 50 kotami (nigdy nie udało Ci się ich wszystkich policzyć), regularnie wysyła Ci e-maile, żeby poinformować Cię o swoich przeżyciach. Zwykle otrzymujesz wiadomości tego rodzaju:
+
+    
+\begin{quotation}
+\itshape
+Drogi siostrzeńcu,
+
+\smallskip  
+
+Twoja matka powiedziała mi, że zacząłeś wykonywać akrobacje ze spadochronem. Czy to prawda? Uważaj na siebie, młody człowieku! Pamiętasz, co się przytrafiło mojemu mężowi? A to było tylko drugie piętro!
+      
+A tak w ogóle, u mnie sporo się dzieje. Cały tydzień próbowałam zwrócić na siebie uwagę Pana Kowalskiego, tego miłego jegomościa, który wprowadził się do mieszkania obok, ale wydaje mi się, że on nie lubi kotów. A może ma na nie alergię? Następnym razem, gdy się z~nim spotkam położę mu na ramieniu Grubego Igora, ciekawe co zrobi.
+      
+A jeśli chodzi o ten przekręt, o którym pisałam wcześniej, to wszystko idzie, jak po maśle. Otrzymałam już pięć „zapłat” i tylko jedną skargę. Ale zaczyna mnie dręczyć sumienie. Pewnie masz rację, że to może być nielegalne.
+      
+(… itd. …)
+
+\smallskip      
+
+Całuję, Ciocia Emilia
+
+\smallskip
+      
+odeszli 04.27.2006: Black Leclère
+      
+urodzeni 04.05.2006 (matka Lady Penelope): Red Lion, Doctor Hobbles 3, Little Iroquois
+\end{quotation}
+    
+Aby zrobić przyjemność starszej pani, mógłbyś zawsze wtrącić jakieś pytanie o jej koty, w stylu „P.S. Mam nadzieję, że Doktor Hobbles 2. dobrze bawił się na swoich urodzinach w niedzielę!” albo „Jak się miewa staruszka Penelopa? Ma już pięć lat, prawda?”. Zachowując takt raczej nie pytałbyś o~zdechłe koty. Masz już pokaźny zbiór starych e-maili od ciotki i na szczęście na końcu każdego z nich ciotka zamieściła informację o zdechłych i nowo narodzonych kotach w dokładnie takim samym formacie.
+
+    
+Nie masz jednak ochoty przeglądać tych wszystkich mejli. Całe szczęście, że właśnie szukaliśmy jakiegoś przykładowego problemu do rozwiązania. Skoro tak, to spróbujemy napisać program rozwiązujący opisany problem. Zaczniemy od napisania programu zwracającego listę kotów, które nadal są żywe od ostatniego e-maila.
+
+    
+Żeby ubiec Twoje pytanie, wyjaśnię, że na początku Waszej korespondencji ciotka Emilia miała tylko jednego kota, o imieniu Spot. (W tamtych czasach ciotka preferowała jeszcze dość konwencjonalne nazwy.)
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+\bigskip 
+
+\centerline{\includegraphics[width=\textwidth]{eyes}} 
+
+\smallskip
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Program o wiele łatwiej jest napisać, gdy ma się przynajmniej mgliste pojęcie, do czego ma służyć. Dlatego poniżej przedstawiam plan aplikacji:
+
+\begin{enumerate}
+      \item Program rozpocznie działanie ze zbiorem kocich imion zawierającym tylko pozycję Spot.
+      \item Program przejrzy wszystkie e-maile w chronologicznej kolejności.
+      \item Program wyszuka akapity zaczynające się od słowa „urodzeni” lub „odeszli”.
+      \item Program doda imiona z akapitów zaczynających się od słowa „urodzeni” do naszego zbioru.
+      \item Program usunie imiona z akapitów zaczynających się od słowa „odeszli” z naszego zbioru.
+\end{enumerate}
+    
+Pobieranie imion z akapitów będzie odbywać się następująco:
+
+\begin{enumerate}
+      \item Znalezienie w akapicie dwukropka.
+      \item Pobranie tego, co znajduje się za dwukropkiem.
+      \item Podzielenie pobranego tekstu na poszczególne imiona wg przecinków.
+\end{enumerate}
+    
+Może się wydawać trochę ryzykowne zawierzenie, że ciotka Emilia zawsze stosuje dokładnie ten sam format i nigdy nie zapomina ani nie robi błędów w imionach, ale taka już właśnie ta ciotka jest.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Najpierw opowiem Ci o własnościach\index{własności}. Z wieloma wartościami w języku JavaScript powiązane są inne wartości. Te powiązania nazywają się własnościami. Każdy łańcuch ma własność o nazwie \texttt{length}\index{length}, która odnosi się do liczby oznaczającej, z ilu znaków ten łańcuch się składa.
+
+    
+\index{[]}Dostęp do własności można uzyskać na dwa sposoby:
+
+    
+\begin{verbatim} 
+var text = "fioletowa mgiełka";
+show(text["length"]);
+// → 17
+show(text.length);
+// → 17
+\end{verbatim}
+    
+Drugi z przedstawionych rodzajów zapisu jest skrótem pierwszego i można go stosować tylko wtedy, gdy nazwa własności mogłaby być poprawną nazwą zmiennej ― nie zawiera spacji ani znaków specjalnych oraz nie zaczyna się od cyfry.
+
+    
+Wartości \texttt{null} i \texttt{undefined} nie mają żadnych własności. Próba odczytania własności jednej z nich zakończy się spowodowaniem błędu. Jeśli chcesz zobaczyć, jakie powiadomienia o błędach mogą wyświetlać przeglądarki (w~niektórych te komunikaty wyglądają bardzo tajemniczo), gdy napotkają taki kod, wykonaj poniższy program.
+
+    
+\begin{verbatim} 
+var nothing = null;
+show(nothing.length);
+// → Exception: TypeError: nothing is null
+\end{verbatim}
+ 
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Własności wartości łańcuchowej nie można zmieniać. Własność \texttt{length} to tylko jedna z wielu własności i nie można żadnych usuwać ani dodawać.
+
+    
+Z wartościami typu obiektowego\index{obiekt} jest jednak inaczej. Ich najważniejszą rolą jest właśnie przechowywać inne wartości. Można powiedzieć, że wartości te mają zestaw przyssawek w postaci własności. Można ja modyfikować, usuwać, a nawet dodawać nowe.
+
+    
+\index{\{\}}Obiekt można zapisać następująco:
+
+    
+\begin{verbatim} 
+var cat = {colour: "grey", name: "Spot", size: 46};
+cat.size = 47;
+show(cat.size);
+// → 47
+delete cat.size;
+show(cat.size);
+// → undefined
+show(cat);
+// → {colour: "grey", name: "Spot"}
+\end{verbatim}
+    
+Podobnie jak zmienne, każda własność związana z obiektem ma tekstową etykietę. Pierwsza z powyższych instrukcji tworzy obiekt, w którym znajduje się własność \texttt{"colour"} odnosząca się do łańcucha \texttt{"grey"}, własność \texttt{"name"} odnosząca się do łańcucha \texttt{"Spot"} oraz własność \texttt{"size"} odnosząca się do liczby \texttt{46}. Druga instrukcja przypisuje własności \texttt{size} nową wartość, co robi się w taki sam sposób, jak modyfikacja wartości zmiennej.
+
+    
+Słowo kluczowe \texttt{delete}\index{delete} usuwa własności. Próba odczytu nieistniejącej własności powoduje zwrócenie wartości \texttt{undefined}.
+
+    
+Jeżeli operator \texttt{=}\index{=} zostanie użyty do ustawienia własności, która jeszcze nie istnieje, to taka własność zostanie utworzona i dodana do obiektu.
+
+    
+\begin{verbatim} 
+var empty = {};
+empty.notReally = 1000;
+show(empty.notReally);
+// → 1000
+\end{verbatim}
+    
+Własności, których nazwy nie mogłyby zostać użyte jako nazwy zmiennych muszą przy tworzeniu obiektu znajdować się w cudzysłowach, a gdy się ich potem używa, trzeba używać kwadratowych nawiasów:
+
+    
+\begin{verbatim} 
+var thing = {"gabba gabba": "hey", "5": 10};
+show(thing["5"]);
+// → 10
+thing["5"] = 20;
+show(thing[2 + 3]);
+// → 20
+delete thing["gabba gabba"];
+\end{verbatim}
+    
+Jak widać, w nawiasach kwadratowych może znajdować się dowolne wyrażenie. Jest ono konwertowane na łańcuch, aby można było określić nazwę własności, do której się odnosi. Jako nazw własności można używać nawet zmiennych:
+
+    
+\begin{verbatim} 
+var propertyName = "length";
+var text = "mainline";
+show(text[propertyName]);
+// → 8
+\end{verbatim}
+    
+Do sprawdzenia czy obiekt ma określoną własność służy operator \texttt{in}\index{in}. Zwraca on wartość logiczną.
+
+    
+\begin{verbatim} 
+var chineseBox = {};
+chineseBox.content = chineseBox;
+show("content" in chineseBox);
+// → true
+show("content" in chineseBox.content);
+// → true
+\end{verbatim}
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Gdy w konsoli wyświetlone są wartości obiektów, można je kliknąć, aby zbadać ich własności. Powoduje to zamianę okna wyjściowego na okno inspekcji. Kliknięcie znajdującego się w prawym górnym rogu tego okna znaku „x” powoduje powrót do okna wyjściowego, natomiast strzałka służy do przejścia do własności poprzednio badanego obiektu.
+
+    
+\begin{verbatim} 
+show(chineseBox);
+// → {content: {…}}
+\end{verbatim}
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+\section*{Ćwiczenie 4.1}
+\label{sec:4.1}
+    
+      
+W rozwiązaniu problemu z kotami wymienione zostało słowo „zbiór”\index{zbiór}. Zbiór to zestaw wartości, w którym żadna wartość nie może się powtórzyć. Jeśli imiona są łańcuchami, czy wiesz, jak użyć obiektu do reprezentowania zbioru imion?
+
+      
+Pokaż jak dodać i usunąć imię z tego zbioru oraz jak sprawdzić, czy dane imię w nim występuje.
+
+    
+[\hyperref[sol:4.1]{pokaż rozwiązanie}]
+    
+    
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+\index{zmienialność}Jak widać, wartości obiektów mogą się zmieniać. Typy wartości opisane w~\hyperref[chap:2]{rozdziale 2} są niezmienne, tzn. nie można zmienić istniejących wartości tych typów. Można je łączyć i tworzyć z nich nowe wartości, ale jeśli weźmiemy dowolną wartość łańcuchową, to znajdującego się w niej tekstu nie możemy zmienić. Natomiast w obiektach treść wartości można zmieniać poprzez zmianę ich własności.
+
+    
+Jeśli mamy dwie liczby \texttt{120} i \texttt{120}, to praktycznie zawsze możemy je uważać za dokładnie tę samą liczbę. W przypadku obiektów posiadanie dwóch referencji do tego samego obiektu i posiadanie dwóch różnych obiektów zawierających takie same własności to nie to samo. Rozważmy poniższy przykład:
+
+    
+\begin{verbatim} 
+var object1 = {value: 10};
+var object2 = object1;
+var object3 = {value: 10};
+
+show(object1 == object2);
+// → true
+show(object1 == object3);
+// → false
+
+object1.value = 15;
+show(object2.value);
+// → 15
+show(object3.value);
+// → 10
+ \end{verbatim}
+    
+\texttt{object1} i \texttt{object2} to dwie zmienne mające \emph{tę samą} wartość. Tak naprawdę jest tylko jeden obiekt i dlatego zmiana wartości obiektu \texttt{object1} powoduje również zmianę wartości obiektu \texttt{object2}. Zmienna \texttt{object3} wskazuje inne obiekt, który początkowo ma takie same własności, jak \texttt{object1}, ale jest osobnym obiektem.
+
+    
+Operator \texttt{==}\index{==} języka JavaScript przy porównywaniu obiektów zwraca wartość \texttt{true} tylko wtedy, gdy oba argumenty są dokładnie tą samą wartością. Wynik porównywania różnych obiektów o identycznej zawartości będzie negatywny (\texttt{false}). W niektórych przypadkach jest to przydatne, a w innych niepraktyczne.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Wartości obiektowe mogą być używane do wielu różnych celów. Tworzenie zbioru to tylko jeden z nich. W tym rozdziale poznasz jeszcze kilka zastosowań tych struktur, a kolejne ważne sposoby ich użycia zostały opisane w \hyperref[chap:8]{rozdziale 8}.
+
+    
+W planie rozwiązania problemu z kotami ― w istocie lepiej mówić na to \emph{algorytm}, dzięki czemu inni będą myśleli, że wiemy o czym mówimy ― w~algorytmie, jest mowa o przejrzeniu wszystkich e-maili znajdujących się w~archiwum. Jak wygląda te archiwum? I gdzie się znajduje?
+
+    
+Drugim z tych pytań na razie się nie przejmuj. W \hyperref[chap:14]{rozdziale 14} poznasz kilka sposobów importowania danych do programów, a na razie przyjmiemy, że e-maile w jakiś magiczny sposób stały się dostępne. W komputerach czarowanie jest naprawdę łatwe.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Sposób przechowywania archiwum jest jednak ciekawą kwestią. W archiwum znajduje się pewna liczba e-maili. Wiadomość e-mail, co oczywiste, może być łańcuchem. W związku z tym całe archiwum można by było umieścić w jednym wielkim łańcuchu, ale to by było niepraktyczne. Potrzebujemy kolekcji osobnych łańcuchów.
+
+    
+Do przechowywania kolekcji łańcuchów dobrze nadają się obiekty. Można np. utworzyć obiekt w ten sposób:
+
+    
+\begin{verbatim} 
+var mailArchive = {"Pierwszy e-mail": "Drogi siostrzeńcu, ...",
+                   "Drugi e-mail": "..."
+                   /* itd. ... */};
+ \end{verbatim}
+    
+Ale w ten sposób trudno by było przejrzeć e-maile od początku do końca, bo skąd program ma wiedzieć, jakie są nazwy własności? Z tym problemem można sobie poradzić stosując przewidywalne nazwy własności:
+
+    
+\begin{verbatim} 
+var mailArchive = {0: "Drogi siostrzeńcu, ... (mail 1)",
+                   1: "(mail 2)",
+                   2: "(mail 3)"};
+
+for (var current = 0; current in mailArchive; current++)
+  print("Przetwarzanie e-maila nr ", current, ": ", mailArchive[current]);
+// → Przetwarzanie e-maila nr 0: Drogi siostrzeńcu, ... (mail 1)
+// → Przetwarzanie e-maila nr 1: (mail 2)
+// → Przetwarzanie e-maila nr 2: (mail 3)
+\end{verbatim}
+    
+Mamy szczęście, że istnieje specjalny rodzaj obiektów przeznaczony właśnie do takich zastosowań. Jest to tablica\index{tablica}, która dodatkowo zawiera pewne udogodnienia, jak np. własność \texttt{length}\index{length} pozwalająca sprawdzić, ile wartości się w niej znajduje oraz obsługuje różne przydatne rodzaje operacji.
+
+    
+\index{[]}Nowe tablice tworzy się przy użyciu kwadratowych nawiasów (\texttt{[} i \texttt{]}):
+
+    
+\begin{verbatim} 
+var mailArchive = ["e-mail 1", "e-mail 2", "e-mail 3"];
+
+for (var current = 0; current < mailArchive.length; current++)
+  print("Przetwarzanie e-maila nr ", current, ": ", mailArchive[current]);
+// → Przetwarzanie e-maila nr 0: e-mail 1
+// → Przetwarzanie e-maila nr 1: e-mail 2
+// → Przetwarzanie e-maila nr 2: e-mail 3
+\end{verbatim}
+    
+W tym przykładzie numery elementów nie są definiowane bezpośrednio. Pierwszemu automatycznie przypisywany jest numer 0, drugiemu — 1 itd.
+
+    
+Dlaczego numerowanie zaczyna się od 0? Ludzie zwykle zaczynają liczyć od 1. Jednak w przypadku kolekcji elementów bardziej praktyczne jest rozpoczynanie liczenia od 0. Po prostu zaakceptuj to, a z czasem się przyzwyczaisz.
+
+    
+Skoro numeracja rozpoczyna się od 0, to znaczy, że w kolekcji \texttt{X} elementów ostatni element ma numer \texttt{X - 1}. Dlatego właśnie w pętli \texttt{for} w powyższym przykładzie znajduje się warunek \texttt{current < mailArchive.length}. Na pozycji \texttt{mailArchive.length} nie ma żadnego elementu, a więc gdy zmienna \texttt{current} uzyska tę wartość, kończymy iterowanie.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+\section*{Ćwiczenie 4.2}
+\label{sec:4.2}
+    
+      
+Napisz funkcję o nazwie \texttt{range} przyjmującą jako argument liczbę całkowitą i~zwracającą tablicę wszystkich liczb od 0 do tej liczby włącznie.
+
+      
+Pustą tablicę można utworzyć pisząc \texttt{[]}. Pamiętaj też, że własności do obiektów, a więc też i tablic, można dodawać przypisując im wartości za pomocą operatora \texttt{=}. Własność \texttt{length} jest aktualizowana automatycznie, gdy są dodawane kolejne elementy.
+
+    
+[\hyperref[sol:4.2]{pokaż rozwiązanie}]
+    
+    
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Zarówno obiekty łańcuchowe jak i tablicowe oprócz własności \texttt{length} zawierają jeszcze kilka innych własności odnoszących się do wartości funkcyjnych.
+
+    
+\begin{verbatim} 
+var doh = "Doh";
+print(typeof doh.toUpperCase);
+// → function
+print(doh.toUpperCase());
+// → DOH
+\end{verbatim}
+    
+Każdy łańcuch ma własność \texttt{toUpperCase}\index{toUpperCase}. Własność ta zwraca kopię łańcucha, w której wszystkie litery są wielkie. Istnieje też własność \texttt{toLowerCase}\index{toLowerCase}. Zgadnij do czego służy.
+
+    
+Zwróć też uwagę, że mimo iż w wywołaniu \texttt{toUpperCase} nie przekazano żadnych argumentów, funkcja ta w jakiś sposób uzyskała dostęp do łańcucha \texttt{"Doh"}, wartości, której jest własnością. Szczegółowo działanie tego mechanizmu jest opisane w \hyperref[chap:8]{rozdziale 8}.
+
+    
+Własności zawierające funkcje nazywają się metodami\index{metoda}, a więc \texttt{toUpperCase} jest metodą obiektu łańcuchowego.
+
+    
+\begin{verbatim} 
+var mack = [];
+mack.push("Mack");
+mack.push("the");
+mack.push("Knife");
+show(mack.join(" "));
+// → "Mack the Knife"
+show(mack.pop());
+// → "Knife"
+show(mack);
+// → ["Mack", "the"]
+\end{verbatim}
+    
+Metoda \texttt{push}\index{push}, która jest związana z tablicami, służy do dodawania wartości do tych struktur. Można by jej było użyć w ostatnim ćwiczeniu zamiast  instrukcji \texttt{result[i] = i}. Istnieje też metoda \texttt{pop}\index{pop}, która jest przeciwieństwem metody \texttt{push}: usuwa i zwraca ostatnią wartość tablicy. Metoda \texttt{join}\index{join} tworzy pojedynczy długi łańcuch z tablicy łańcuchów. Parametr jej wywołania jest wstawiany między wartościami tablicy.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Wracając do kotów, wiemy już, że do przechowywania archiwum e-maili doskonale nada się tablica. Na tej stronie tablicę tę można magicznie pobrać za pomocą funkcji \texttt{retrieveMails}. Przejrzenie e-maili i ich przetworzenie nie będzie już teraz wielkim wyzwaniem:
+
+    
+\begin{verbatim} 
+var mailArchive = retrieveMails();
+
+for (var i = 0; i < mailArchive.length; i++) {
+  var email = mailArchive[i];
+  print("Przetwarzanie e-maila nr ", i);
+  // Jakieś działania...
+}
+// → Przetwarzanie e-maila nr 0
+// → Przetwarzanie e-maila nr 1
+// → ... itd.
+\end{verbatim}
+    
+Wybraliśmy też sposób reprezentacji zbioru kotów, które wciąż żyją. Zatem następnym problemem jest znalezienie w wiadomości e-mail akapitów zaczynających się od słów \texttt{"urodzeni"} lub \texttt{"odeszli"}.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Od razu nasuwa się pytanie, czym jest akapit. W tym przypadku odpowiedź wartość łańcuchowa nie będzie pomocna, ponieważ w języku JavaScript tekstem jest po prostu „szereg znaków”, a więc musimy sami zdefiniować akapity bazując na tym, co mamy.
+
+    
+Wcześniej pokazałem Ci, że istnieje coś takiego, jak znak nowego wiersza. Zazwyczaj znak ten jest używany do oddzielania akapitów. W związku z~tym za akapit będziemy uznawać część wiadomości e-mail, której początek wyznacza znak nowego wiersza lub początek treści, a koniec określa kolejny znak nowego wiersza lub koniec treści.
+
+    
+Nie musimy nawet samodzielnie pisać algorytmu do dzielenia łańcucha na akapity. Łańcuchy mają gotową metodę o nazwie \texttt{split}\index{split}, która jest prawie dokładnym przeciwieństwem metody \texttt{join} w tablicach. Metoda ta tnie łańcuch na fragmenty, które zapisuje w elementach tablicy, a jako znaku podziału używa łańcucha przekazanego jej jako argument.
+
+    
+\begin{verbatim} 
+var words = "Cities of the Interior";
+show(words.split(" "));
+// → ["Cities", "of", "the", "Interior"]
+\end{verbatim}
+    
+W związku z tym do podzielenia wiadomości e-mail na akapity możemy zastosować cięcie wg znaków nowego wiersza (\texttt{"\textbackslash n"}).
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+\section*{Ćwiczenie 4.3}
+\label{sec:4.3}
+    
+      
+Metody \texttt{split} i \texttt{join} nie są swoimi dokładnymi przeciwieństwami. Instrukcja \texttt{string.split(x).join(x)} zawsze zwróci oryginalną wartość, ale \texttt{array.join(x)\\.split(x)} nie. Potrafisz podać przykład tablicy, dla której instrukcja \texttt{.join(" ").split(" ")} zwróci inną wartość?
+
+    
+[\hyperref[sol:4.3]{pokaż rozwiązanie}]
+    
+    
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Akapity nie rozpoczynające się od słów „urodzeni” i „odeszli” mogą zostać zignorowane. Jak sprawdzić, czy łańcuch zaczyna się od określonego słowa? Za pomocą metody \texttt{charAt}\index{charAt} można pobrać wybraną literę z łańcucha. Instrukcja \texttt{x.charAt(0)} zwraca pierwszą literę, \texttt{1} — drugą itd. Jednym ze sposobów na sprawdzenie, czy łańcuch zaczyna się od słowa „urodzeni” jest napisanie takiego kodu:
+
+    
+\begin{verbatim} 
+var paragraph = "urodzeni 15-11-2003 (matka Spot): White Fang";
+show(paragraph.charAt(0) == "u" && paragraph.charAt(1) == "r" &&
+     paragraph.charAt(2) == "o" && paragraph.charAt(3) == "d") &&
+     paragraph.charAt(4) == "z" && paragraph.charAt(5) == "e" &&
+     paragraph.charAt(6) == "n" && paragraph.charAt(7) == "i";
+// → true
+\end{verbatim}
+    
+Ale to nie jest eleganckie rozwiązanie ― wyobraź sobie sprawdzanie słów składających się z jeszcze większej liczby liter. Możesz się tu jednak czegoś nauczyć: jeśli wiersz kodu staje się zbyt długi, można go podzielić na kilka wierszy. Aby tekst programu był przejrzysty, można wyrównać początek nowego wiersza z pierwszym podobnym elementem poprzedniego wiersza.
+
+    
+Łańcuchy mają też metodę o nazwie \texttt{slice}\index{slice}. Metoda ta kopiuje fragment łańcucha zaczynając od miejsca określonego liczbowo w pierwszym argumencie i kończąc przed znakiem znajdującym się na pozycji wyznaczonej przez drugi argument (tez znak nie jest wliczany). Przy jej użyciu nasz test możemy zapisać krócej.
+
+    
+\begin{verbatim} 
+show(paragraph.slice(0, 8) == "urodzeni");
+// → true
+\end{verbatim}
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+\section*{Ćwiczenie 4.4}
+\label{sec:4.4}
+    
+      
+Napisz funkcję o nazwie \texttt{startsWith}, która pobiera dwa argumenty łańcuchowe. Niech zwraca wartość \texttt{true}, gdy pierwszy argument zaczyna się od znaków znajdujących się w drugim argumencie i \texttt{false} w przeciwnym przypadku.
+
+    
+[\hyperref[sol:4.4]{pokaż rozwiązanie}]
+    
+    
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Co się dzieje, gdy metody \texttt{charAt} i \texttt{slice} zostaną użyte do pobrania nieistniejącego fragmentu łańcucha? Czy funkcja \texttt{startsWith} będzie działać nawet wtedy, gdy szukany łańcuch (pattern) będzie dłuższy od łańcucha, w~którym ma być szukany?
+
+    
+\begin{verbatim} 
+show("Pip".charAt(250));
+// → ""
+show("Nop".slice(1, 10));
+// → "op"
+ \end{verbatim}
+    
+Metoda \texttt{charAt} dla nieistniejącego znaku zwraca \texttt{""}, a \texttt{slice} po prostu ignoruje tę część, która nie istnieje.
+
+    
+A zatem odpowiedź na postawione pytanie brzmi „tak, funkcja \texttt{startsWith} będzie działać”. W wywołaniu \texttt{startsWith("Idioci", "najbardziej szanowani koledzy")}, wywołanie metody \texttt{slice} zawsze zwróci łańcuch krótszy od \texttt{pattern}, ponieważ argument \texttt{string} nie zawiera wystarczająco dużo znaków. Z tego powodu wynikiem porównywania przy użyciu operatora \texttt{==} będzie \texttt{false}, czyli to, co powinno.
+
+    
+Zawsze warto chwilę zastanowić się nad nienormalnymi (ale poprawnymi) danymi wejściowymi do programu. Są to tzw. przypadki brzegowe\index{przypadki brzegowe} i wiele programów, które działają doskonale na wszystkich „normalnych” danych wejściowych fiksuje właśnie na tych przypadkach.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Z problemu z kotami nierozwiązana pozostała już tylko kwestia pobierania imion z akapitów. Opis algorytmu wyglądał tak:
+
+    \begin{enumerate}
+      \item Znalezienie w akapicie dwukropka.
+      \item Pobranie tego, co znajduje się za dwukropkiem.
+      \item Podzielenie pobranego tekstu na poszczególne imiona wg przecinków.
+    \end{enumerate}
+    
+Dotyczy to zarówno akapitów zaczynających się od słowa \texttt{"odeszli"} jak i od słowa \texttt{"urodzeni"}. Dobrym pomysłem jest zapisanie tego algorytmu jako funkcji, aby można go było używać w kodzie obsługującym oba rodzaje akapitów.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+\section*{Ćwiczenie 4.5}
+\label{sec:4.5}
+    
+      
+Potrafisz napisać funkcję o nazwie \texttt{catNames}, która jako argument pobiera akapit i zwraca tablicę imion?
+
+      
+Łańcuchy mają metodę \texttt{indexOf}\index{indexOf}, za pomocą której można znaleźć pozycję pierwszego wystąpienia znaku lub podłańcucha w łańcuchu. Ponadto metoda \texttt{slice}, gdy przekaże się jej tylko jeden argument zwraca część łańcucha od określonej w tym argumencie pozycji do końca.
+
+      
+Pomóc może Ci użycie konsoli do zbadania sposobu, w jaki działają funkcje. Wpisz np. \texttt{"foo: bar".indexOf(":")} i zobacz, co się stanie.
+
+    
+[\hyperref[sol:4.5]{pokaż rozwiązanie}]
+    
+    
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Pozostało więc tylko poskładać wszystkie części w jedną całość. Oto jeden ze sposobów:
+
+    
+\begin{verbatim} 
+var mailArchive = retrieveMails();
+var livingCats = {"Spot": true};
+
+for (var mail = 0; mail < mailArchive.length; mail++) {
+  var paragraphs = mailArchive[mail].split("\n");
+  for (var paragraph = 0;
+       paragraph < paragraphs.length;
+       paragraph++) {
+    if (startsWith(paragraphs[paragraph], "urodzeni")) {
+      var names = catNames(paragraphs[paragraph]);
+      for (var name = 0; name < names.length; name++)
+        livingCats[names[name]] = true;
+    }
+    else if (startsWith(paragraphs[paragraph], "odeszli")) {
+      var names = catNames(paragraphs[paragraph]);
+      for (var name = 0; name < names.length; name++)
+        delete livingCats[names[name]];
+    }
+  }
+}
+
+show(livingCats);
+// → {Clementine: true, Black Leclère: true, …}
+\end{verbatim}
+    
+To dość długi i skomplikowany kod. Zaraz spróbujemy sprawić, aby wyglądał trochę klarowniej. Ale najpierw spójrz na wyniki. Wiemy, jak sprawdzić czy określony kot żyje:
+
+    
+\begin{verbatim} 
+if ("Spot" in livingCats)
+  print("Spot żyje!");
+else
+  print("Dobra stara Spot, niech spoczywa w pokoju.");
+// → Dobra stara Spot, niech spoczywa w pokoju.
+\end{verbatim}
+    
+A jak wyświetlić listę wszystkich żyjących kotów? Słowo kluczowe \texttt{in}\index{in}, gdy zostanie użyte w połączeniu z \texttt{for} nieco zmienia swoje znaczenie:
+
+    
+\begin{verbatim} 
+for (var cat in livingCats)
+  print(cat);
+// → Clementine
+// → Black Leclère
+// → ... itd.
+\end{verbatim}
+    
+Powyższa pętla przegląda nazwy własności w obiekcie, dzięki czemu możemy zrobić listę wszystkich imion znajdujących się w naszym zbiorze.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Niektóre fragmenty kodu wyglądają, jak gęsta dżungla. Dotyczy to także naszego rozwiązania kociego problemu. Jednym ze sposobów na poprawienie czytelności kodu jest dodanie do niego trochę pustych wierszy. Teraz kod wygląda lepiej, ale to nie rozwiązuje całkowicie problemu.
+
+    
+Żeby osiągnąć sukces, powinniśmy ten kod podzielić. Napisaliśmy już dwie funkcje pomocnicze, \texttt{startsWith} i \texttt{catNames}, z których każda rozwiązuje niewielki i dający się ogarnąć myślą fragment problemu. Możemy dalej rozwijać to podejście.
+
+    
+\begin{verbatim} 
+function addToSet(set, values) {
+  for (var i = 0; i < values.length; i++)
+    set[values[i]] = true;
+}
+
+function removeFromSet(set, values) {
+  for (var i = 0; i < values.length; i++)
+    delete set[values[i]];
+}
+ \end{verbatim}
+    
+Te dwie funkcje dodają imiona do zbioru i je z niego usuwają. Dzięki nim możemy pozbyć się dwóch najgłębiej położonych pętli z rozwiązania:
+
+    
+\begin{verbatim} 
+var livingCats = {Spot: true};
+
+for (var mail = 0; mail < mailArchive.length; mail++) {
+  var paragraphs = mailArchive[mail].split("\n");
+  for (var paragraph = 0;
+       paragraph < paragraphs.length;
+       paragraph++) {
+    if (startsWith(paragraphs[paragraph], "urodzeni"))
+      addToSet(livingCats, catNames(paragraphs[paragraph]));
+    else if (startsWith(paragraphs[paragraph], "odeszli"))
+      removeFromSet(livingCats, catNames(paragraphs[paragraph]));
+  }
+}
+ \end{verbatim}
+    
+Całkiem nieźle, jeśli mogę sam siebie pochwalić.
+
+    
+Dlaczego funkcje \texttt{addToSet} i \texttt{removeFromSet} pobierają zbiór jako argument? Równie dobrze mogłyby bezpośrednio używać zmiennej \texttt{livingCats}. Ale dzięki zastosowanemu podejściu nie są ściśle związane z tym jednym problemem. Gdyby funkcja \texttt{addToSet} bezpośrednio operowała na zmiennej \texttt{livingCats}, musiałaby się nazywać \texttt{addCatsToCatSet} lub jakoś podobnie. Dzięki takiej budowie, jak ma teraz jest bardziej ogólna.
+
+    
+Funkcje warto pisać w taki sposób nawet wtedy, gdy nie planuje się ich kiedykolwiek używać do innych celów, co jest całkiem możliwe. Dzięki temu, że są „samowystarczalne”, można je czytać i zrozumieć bez potrzeby dowiadywania się, czym jest jakaś zewnętrzna zmienna o nazwie \texttt{livingCats}.
+
+    
+Te funkcje nie są czyste, ponieważ zmieniają obiekt, który zostaje im przekazany jako argument \texttt{set}. To sprawia, że są trochę trudniejsze od prawdziwych czystych funkcji, ale i tak o wiele mniej skomplikowane niż funkcje, które jak szaleniec zmieniają każdą wartość i zmienną, jaką mają ochotę zmienić.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Kontynuujemy omawianie algorytmu:
+
+    
+\begin{verbatim} 
+function findLivingCats() {
+  var mailArchive = retrieveMails();
+  var livingCats = {"Spot": true};
+
+  function handleParagraph(paragraph) {
+    if (startsWith(paragraph, "urodzeni"))
+      addToSet(livingCats, catNames(paragraph));
+    else if (startsWith(paragraph, "odeszli"))
+      removeFromSet(livingCats, catNames(paragraph));
+  }
+
+  for (var mail = 0; mail < mailArchive.length; mail++) {
+    var paragraphs = mailArchive[mail].split("\n");
+    for (var i = 0; i < paragraphs.length; i++)
+      handleParagraph(paragraphs[i]);
+  }
+  return livingCats;
+}
+
+var howMany = 0;
+for (var cat in findLivingCats())
+  howMany++;
+print("Jest ", howMany, " kotów.");
+// → Jest 22 kotów.
+\end{verbatim}
+    
+Teraz cały algorytm znajduje się w funkcji. Dzięki temu po zakończeniu działania nie pozostawi bałaganu. Zmienna \texttt{livingCats} jest teraz lokalna w~funkcji, a więc istnieje tylko w czasie, gdy ta funkcja jest wykonywana. Kod potrzebujący tego zbioru może wywołać funkcję \texttt{findLivingCats} i użyć jej wartości zwrotnej.
+
+    
+Ponadto wydawało mi się, że utworzenie osobnej funkcji \texttt{handleParagraph} również sprawi, że kod będzie bardziej przejrzysty. Jest ona jednak ściśle związana z kocim algorytmem i w innych sytuacjach byłaby nieprzydatna. Ponadto potrzebny jest jej dostęp do zmiennej \texttt{livingCats}. To wszystko sprawia, że funkcja ta doskonale nadaje się do zdefiniowania w innej funkcji. Umieszczając ją w funkcji \texttt{findLivingCats} podkreślamy, że jest przydatna tylko w niej i udostępniamy jej zmienne tej funkcji nadrzędnej.
+
+    
+To rozwiązanie jest tak naprawdę \emph{większe} od poprzedniego. Ale jest za to klarowniejsze i chyba się zgodzisz, że bardziej czytelne.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Program nadal ignoruje wiele informacji znajdujących się w e-mailach. Można w nich znaleźć daty urodzin, daty śmierci oraz imiona matek.
+
+    
+Zaczniemy od dat. Jaki jest najlepszy sposób ich przechowywania? Moglibyśmy utworzyć obiekt z własnościami \texttt{year}, \texttt{month} i \texttt{day} i w nich zapisać odpowiednie liczby.
+
+    
+\begin{verbatim} 
+var when = {year: 1980, month: 2, day: 1};
+\end{verbatim}
+    
+Ale w języku JavaScript dostępny jest gotowy obiekt do przechowywania tego typu danych. Można go utworzyć przy użyciu słowa kluczowego \texttt{new}\index{new}
+
+    
+\begin{verbatim} 
+var when = new Date(1980, 1, 1);
+show(when);
+// → Fri Feb 01 1980 00:00:00 GMT+0100
+\end{verbatim}
+    
+Do tworzenia wartości obiektowych można używać słowa kluczowego \texttt{new}, podobnie jak nawiasów klamrowych z dwukropkami. Jednak zamiast podawać nazwy i wartości wszystkich własności, w tym przypadku obiekt tworzy się przy użyciu funkcji. Dzięki temu możliwe jest opracowanie standardowych procedur tworzenia obiektów. Funkcje tego typu nazywają się konstruktorami\index{konstruktor}, a techniki ich tworzenia poznasz w \hyperref[chap:8]{rozdziale 8}.
+
+    
+Konstruktora \texttt{Date}\index{Date} można używać na różne sposoby.
+
+    
+\begin{verbatim} 
+show(new Date());
+show(new Date(1980, 1, 1));
+// → Fri Feb 01 1980 00:00:00 GMT+0100
+show(new Date(2007, 2, 30, 8, 20, 30));
+// → Fri Mar 30 2007 08:20:30 GMT+0200
+\end{verbatim}
+    
+Jak widać, w obiektach tych można przechowywać zarówno godziny jak i~daty. Jeśli nie przekaże się żadnych argumentów, zostanie utworzony obiekt zawierający bieżącą datę i godzinę. Jeśli się je zdefiniuje, to można za ich pomocą utworzyć obiekt zawierający wybraną datę i godzinę. Argumenty te kolejno oznaczają rok, miesiąc, dzień, godzinę, minutę, sekundę oraz milisekundę. Cztery ostatnie argumenty są opcjonalne i jeśli nie zostaną zdefiniowane, nadawana jest im wartość 0.
+
+    
+Miesiące w tych obiektach są numerowane od 0 do 11, co może powodować pomyłki. Co ciekawe, numeracja dni zaczyna się od 1.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Zawartość obiektu \texttt{Date} można zbadać przy użyciu metod \texttt{get...}.
+
+    
+\begin{verbatim} 
+var today = new Date();
+print("Rok: ", today.getFullYear(), ", miesiąc: ",
+      today.getMonth(), ", dzień: ", today.getDate());
+print("Godzina: ", today.getHours(), ", minuta: ",
+      today.getMinutes(), ", sekunda: ", today.getSeconds());
+print("Dzień tygodnia: ", today.getDay());
+ \end{verbatim}
+    
+Wszystkie te metody oprócz \texttt{getDay} mają również odpowiednik z przedrostkiem \texttt{set}, który służy do zmieniania wartości obiektu.
+
+    
+Wewnątrz obiektu data jest reprezentowana w postaci liczby milisekund, jaka upłynęła od 1 stycznia 1970 r. Domyślasz się pewnie, że to całkiem spora liczba.
+
+    
+\begin{verbatim} 
+var today = new Date();
+show(today.getTime());
+\end{verbatim}
+    
+Jedną z najczęściej wykonywanych operacji na datach jest porównywanie.
+
+    
+\begin{verbatim} 
+var wallFall = new Date(1989, 10, 9);
+var gulfWarOne = new Date(1990, 6, 2);
+show(wallFall < gulfWarOne);
+// → true
+show(wallFall == wallFall);
+// → true
+// ale
+show(wallFall == new Date(1989, 10, 9));
+// → false
+\end{verbatim}
+    
+Wyniki porównywania dat za pomocą operatorów \texttt{<}, \texttt{>}, \texttt{<=} oraz \texttt{>=} są prawidłowe. Gdy obiekt daty porówna się z nim samym za pomocą operatora \texttt{==}, zwrócona zostanie wartość \texttt{true}, co również jest dobre. Jeśli jednak za pomocą operatora \texttt{==}\index{==} porówna się dwa różne obiekty daty zawierające tę samą datę, zostanie zwrócony wynik \texttt{false}. Dlaczego?
+
+    
+Już wcześniej napisałem, że operator \texttt{==} zawsze zwraca wartość \texttt{false}, gdy porównywane są dwa różne obiekty, nawet jeżeli zawierają one identyczne własności. Jest to trochę niezgrabne i mylące rozwiązanie, ponieważ logicznie rzecz biorąc można się spodziewać, że operatory \texttt{>=} i \texttt{==} powinny działać podobnie. Aby sprawdzić czy dwie daty są sobie równe, można napisać taki kod:
+
+    
+\begin{verbatim} 
+var wallFall1 = new Date(1989, 10, 9),
+    wallFall2 = new Date(1989, 10, 9);
+show(wallFall1.getTime() == wallFall2.getTime());
+// → true
+\end{verbatim}
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Oprócz daty i godziny obiekty \texttt{Date} zawierają dodatkowo informację o~strefie czasowej\index{strefa czasowa}. Gdy w Amsterdamie jest trzynasta, to w niektórych porach roku w Londynie jest południe, a w Nowym Jorku siódma. Godziny można zatem porównywać tylko, gdy weźmie się pod uwagę strefę czasową. Za pomocą funkcji \texttt{getTimezoneOffset}\index{getTimezoneOffset} obiektu \texttt{Date} można sprawdzić, o ile minut godzina zawarta w tym obiekcie różni się od czasu GMT (Greenwich Mean Time).
+
+    
+\begin{verbatim} 
+var now = new Date();
+print(now.getTimezoneOffset());
+// → -120
+\end{verbatim}
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+\section*{Ćwiczenie 4.6}
+\label{sec:4.6}
+    
+      
+\begin{verbatim} 
+"odeszli 27.04.2006: Black Leclère"
+ \end{verbatim}
+      
+Data zawsze znajduje się w tym samym miejscu akapitu. Jak fajnie. Napisz funkcję o nazwie \texttt{extractDate} pobierającą taki akapit jako argument i~wydobywającą z niego datę oraz zwracającą ją w obiekcie daty.
+
+    
+[\hyperref[sol:4.6]{pokaż rozwiązanie}]
+    
+    
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Od tej pory zapisywanie kotów będzie przebiegało inaczej. Zamiast tylko umieścić wartość \texttt{true} w zbiorze, teraz będziemy zapisywać obiekt z informacjami o kocie. Gdy kot zdechnie, nie będziemy go usuwać ze zbioru, tylko dodamy do obiektu własność \texttt{death}, w której zapiszemy datę śmierci zwierzęcia.
+
+    
+Z tego powodu funkcje \texttt{addToSet} i \texttt{removeFromSet} stały się bezużyteczne. Potrzebujemy czegoś podobnego, ale to coś musi dodatkowo zapisywać datę urodzenia i imię matki.
+
+    
+\begin{verbatim} 
+function catRecord(name, birthdate, mother) {
+  return {name: name, birth: birthdate, mother: mother};
+}
+
+function addCats(set, names, birthdate, mother) {
+  for (var i = 0; i < names.length; i++)
+    set[names[i]] = catRecord(names[i], birthdate, mother);
+}
+function deadCats(set, names, deathdate) {
+  for (var i = 0; i < names.length; i++)
+    set[names[i]].death = deathdate;
+}
+ \end{verbatim}
+    
+\texttt{catRecord} to osobna funkcja służąca do tworzenia tych magazynowych obiektów. Może być przydatna też w innych sytuacjach, jak np. utworzenie obiektu dla Spot. Słowo „Record” jest często używane w nazwach tego rodzaju obiektów, które służą do grupowania określonej ograniczonej liczby wartości.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Spróbujmy więc pobrać imiona kocich matek z akapitów.
+
+    
+\begin{verbatim} 
+"urodzeni 15/11/2003 (matka Spot): White Fang"
+ \end{verbatim}
+    
+Oto jeden z możliwych sposobów…
+
+    
+\begin{verbatim} 
+function extractMother(paragraph) {
+  var start = paragraph.indexOf("(matka ") + "(matka ".length;
+  var end = paragraph.indexOf(")");
+  return paragraph.slice(start, end);
+}
+
+show(extractMother("urodzeni 15/11/2003 (matka Spot): White Fang"));
+// → "Spot"
+ \end{verbatim}
+    
+Zwróć uwagę, że pozycja startowa musi zostać dostosowana do długości słowa \texttt{"(matka "}, ponieważ \texttt{indexOf} zwraca pozycję początku wzorca, a nie jego końca.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+\section*{Ćwiczenie 4.7}
+\label{sec:4.7}
+    
+      
+Działanie wykonywane przez funkcję \texttt{extractMother} można wyrazić w bardziej ogólny sposób. Napisz funkcję o nazwie \texttt{between}, która pobiera trzy argumenty łańcuchowe. Funkcja ta niech zwraca część pierwszego argumentu, która występuje między wzorcami znajdującymi się w drugim i trzecim argumencie.
+
+      
+Na przykład wynikiem wywołania \texttt{between("urodzeni 15/11/2003 (matka Spot): White Fang", "(matka ", ")")} powinien być łańcuch \texttt{"Spot"}.
+
+      
+A wynikiem wywołania \texttt{between("bu ] boo [ bah ] gzz", "[ ", " ]")} powinien być łańcuch \texttt{"bah"}.
+
+      
+Drugi z wymienionych przypadków łatwiej będzie zaimplementować wiedząc, że funkcji \texttt{indexOf} można przekazać drugi, opcjonalny, argument określający, w którym miejscu ma się rozpocząć szukanie.
+
+    
+[\hyperref[sol:4.7]{pokaż rozwiązanie}]
+    
+    
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Dzięki funkcji \texttt{between} można uprościć funkcję extractMother:
+
+    
+\begin{verbatim} 
+function extractMother(paragraph) {
+  return between(paragraph, "(matka ", ")");
+}
+ \end{verbatim}
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Ulepszona wersja kociego algorytmu wygląda teraz tak:
+
+    
+\begin{verbatim} 
+function findCats() {
+  var mailArchive = retrieveMails();
+  var cats = {"Spot": catRecord("Spot", new Date(1997, 2, 5),
+              "nieznany")};
+
+  function handleParagraph(paragraph) {
+    if (startsWith(paragraph, "urodzeni"))
+      addCats(cats, catNames(paragraph), extractDate(paragraph),
+              extractMother(paragraph));
+    else if (startsWith(paragraph, "odeszli"))
+      deadCats(cats, catNames(paragraph), extractDate(paragraph));
+  }
+
+  for (var mail = 0; mail < mailArchive.length; mail++) {
+    var paragraphs = mailArchive[mail].split("\n");
+    for (var i = 0; i < paragraphs.length; i++)
+      handleParagraph(paragraphs[i]);
+  }
+  return cats;
+}
+
+var catData = findCats();
+ \end{verbatim}
+    
+Mając te dodatkowe dane możemy w końcu połapać się w kotach ciotki Emilii. Poniższa funkcja może być przydatna:
+
+    
+\begin{verbatim} 
+function formatDate(date) {
+  return date.getDate() + "/" + (date.getMonth() + 1) +
+         "/" + date.getFullYear();
+}
+
+function catInfo(data, name) {
+  if (!(name in data))
+    return "Kot o imieniu " + name + " nie jest znany światu.";
+
+  var cat = data[name];
+  var message = name + ", urodzony " + formatDate(cat.birth) +
+                " z matki  " + cat.mother;
+  if ("death" in cat)
+    message += ", zdechł dnia " + formatDate(cat.death);
+  return message + ".";
+}
+
+print(catInfo(catData, "Fat Igor"));
+// → Fat Igor, urodzony 30/11/1899 z matki  Miss Bushtail.
+\end{verbatim}
+    
+Pierwsza instrukcja \texttt{return} w funkcji \texttt{catInfo} służy jako wyjście awaryjne. Jeśli o wybranym kocie nie ma żadnych danych, reszta funkcji jest bez znaczenia, w związku z czym od razu zwracamy wartość, aby wstrzymać dalsze niepotrzebne wykonywanie kodu.
+
+    
+Kiedyś niektórzy programiści funkcje zawierające kilka instrukcji \texttt{return} uważali za ciężki grzech. Chodziło im o to, że wówczas trudno jest określić, która część kodu zostanie wykonana, a która nie. W \hyperref[chap:5]{rozdziale 5} poznasz techniki, dzięki którym argumenty używane przez tych programistów stały się mniej lub bardziej nieaktualne, chociaż wciąż od czasu do czasu można spotkać osoby krytykujące taki sposób użycia instrukcji return.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+\section*{Ćwiczenie 4.8}
+\label{sec:4.8}
+    
+      
+Funkcja \texttt{formatDate} używana przez funkcję \texttt{catInfo} nie dodaje zera przed jednocyfrowymi numerami miesięcy i dni. Napisz jej nową wersję, która będzie to robić.
+
+    
+[\hyperref[sol:4.8]{pokaż rozwiązanie}]
+    
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+\section*{Ćwiczenie 4.9}
+\label{sec:4.9}
+    
+      
+Napisz funkcję o nazwie \texttt{oldestCat} przyjmującą jako argument obiekt zawierający dane kotów i zwracającą nazwę najstarszego żyjącego kota.
+
+    
+[\hyperref[sol:4.9]{pokaż rozwiązanie}] 
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Skoro wiesz już jak posługiwać się tablicami, pokażę Ci jeszcze coś innego. Gdy wywoływana jest jakakolwiek funkcja, w środowisku, w którym działa tworzona jest specjalna zmienna o nazwie \texttt{arguments}\index{arguments}. Zmienna ta odwołuje się do obiektu, który przypomina tablicę. Pierwszy argument jest własnością \texttt{0}, drugi argument jest własnością \texttt{1} itd. dla wszystkich argumentów, jakie zostały przekazane funkcji. Ponadto zmienna ta ma własność \texttt{length}\index{length}.
+
+    
+Obiekt ten nie jest jednak prawdziwą tablicą, nie ma takich metod, jak \texttt{push} i nie aktualizuje automatycznie swojej własności \texttt{length}, gdy zostanie do niego coś dodane. Nie udało mi się dowiedzieć, czemu nie, ale należy o~tym pamiętać.
+
+    
+\begin{verbatim} 
+function argumentCounter() {
+  print("Przekazałeś mi ", arguments.length, " argumentów.");
+}
+argumentCounter("Śmierć", "Głód", "Zaraza");
+// → Przekazałeś mi 3 argumentów.
+\end{verbatim}
+    
+Niektóre funkcje, jak np. \texttt{print}, mogą przyjmować nieograniczoną liczbę argumentów. Funkcje te zazwyczaj przeglądają za pomocą pętli zawartość obiektu \texttt{arguments} i wykonują na niej jakieś działania. Są też funkcje przyjmujące argumenty opcjonalne, którym jeśli nie zostaną zdefiniowane przez wywołującego, zostają przypisane jakieś domyślne wartości.
+
+    
+\begin{verbatim} 
+function add(number, howmuch) {
+  if (arguments.length < 2)
+    howmuch = 1;
+  return number + howmuch;
+}
+
+show(add(6));
+// → 7
+show(add(6, 4));
+// → 10
+\end{verbatim}
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+\section*{Ćwiczenie 4.10}
+\label{sec:4.10}
+    
+      
+Rozszerz funkcję \texttt{range} z \hyperref[sec:4.2]{ćwiczenia 4.2}, aby przyjmowała drugi argument, który jest opcjonalny. Jeśli zostanie przekazany tylko jeden argument, funkcja powinna działać tak, jak wcześniej, tzn. tworzyć zakres od 0 do podanej liczby. Jeśli natomiast zostaną podane dwa argumenty, pierwszy powinien określać początek przedziału, a drugi — koniec.
+
+    
+[\hyperref[sol:4.10]{pokaż rozwiązanie}]
+    
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+\section*{Ćwiczenie 4.11}
+\label{sec:4.11}
+    
+      
+Może pamiętasz poniższy wiersz kodu z wprowadzenia:
+
+      
+\begin{verbatim} 
+print(sum(range(1, 10)));
+\end{verbatim}
+      
+Funkcję \texttt{range} już mamy. Do działania potrzebna jest nam jeszcze tylko funkcja \texttt{sum}. Funkcja ta przyjmuje tablicę liczb i zwraca ich sumę. Napisz ją. Nie powinna Ci sprawić problemów.
+
+    
+[\hyperref[sol:4.11]{pokaż rozwiązanie}]
+    
+    
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+W \hyperref[chap:2]{rozdziale 2} poruszone zostały funkcje \texttt{Math.max} i \texttt{Math.min}. Teraz już wiesz, że są to tak naprawdę własności \texttt{max} i \texttt{min} obiektu o nazwie \texttt{Math}\index{Math}. Jest to kolejna ważna rola obiektów: są to magazyny powiązanych ze sobą wartości.
+
+    
+W obiekcie \texttt{Math} znajduje się wiele wartości i gdyby je wszystkie zamiast w obiekcie umieszczono bezpośrednio w globalnym środowisku, to zostałoby ono, jak to się mówi, zaśmiecone. Im więcej nazw jest zajętych, tym większe ryzyko, że nazwa jakiejś zmiennej zostanie przypadkowo nadpisana. Na przykład nazwa \texttt{max} może być dość popularna.
+
+    
+W większości języków programowania użycie zajętej nazwy zmiennej jest niemożliwe albo wyświetlane jest ostrzeżenie, gdy ktoś próbuje takiej nazwy użyć. W JavaScripcie tak nie jest.
+
+    
+W każdym bądź razie obiekt \texttt{Math} zawiera masę rozmaitych funkcji i stałych matematycznych. Znajdują się w nim implementacje wszystkich funkcji trygonometrycznych ― \texttt{cos}, \texttt{sin}, \texttt{tan}, \texttt{acos}, \texttt{asin} oraz \texttt{atan}. Dostępne są też stałe π i e, które zapisane są wielkimi literami (\texttt{PI} i \texttt{E}) — wielkich liter kiedyś modnie używało się do zapisywania nazw stałych. Funkcja \texttt{pow} jest dobrym zamiennikiem dla naszych funkcji \texttt{power}. Funkcja ta dodatkowo akceptuje ujemne i ułamkowe wykładniki. Funkcja \texttt{sqrt} oblicza pierwiastki kwadratowe. Funkcje \texttt{max} i \texttt{min} zwracają większą i mniejszą z dwóch wartości. Funkcje \texttt{round}\index{Math.round}, \texttt{floor}\index{Math.floor} i \texttt{ceil}\index{Math.ceil} zaokrąglają liczby odpowiednio do najbliższej całkowitej, całkowitej mniejszej oraz całkowitej większej liczby.
+
+    
+Obiekt \texttt{Math} zawiera jeszcze wiele innych wartości, ale ten rozdział jest wstępem do programowania, a nie dokumentacją\index{dokumentacja}. Do dokumentacji można zajrzeć, gdy podejrzewa się, że jakiś element w języku istnieje i chce się sprawdzić jego nazwę albo jak dokładnie działa. Niestety nie ma jednej pełnej dokumentacji języka JavaScript. Jest to spowodowane między innymi tym, że powstawał w chaotycznym procesie dodawania rozszerzeń przez różne przeglądarki. Dobrą dokumentacją podstawowego języka jest standard ECMA, ale jest to niezbyt czytelny dokument. W większości przypadków najlepszym źródłem informacji jest portal \href{https://developer.mozilla.org/en/JavaScript/Reference/}{Mozilla Developer Network}.
+
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Może już zastanawiałeś się, jak się dowiedzieć, co dokładnie zawiera obiekt \texttt{Math}:
+
+    
+\begin{verbatim} 
+for (var name in Math)
+  print(name);
+\end{verbatim}
+    
+Ale ten kod nic nie wyświetli. Podobnie będzie z poniższym kodem:
+
+    
+\begin{verbatim} 
+for (var name in ["Huey", "Dewey", "Loui"])
+  print(name);
+// → 0
+// → 1
+// → 2
+\end{verbatim}
+    
+Wyświetlone zostaną tylko cyfry \texttt{0}, \texttt{1} i \texttt{2} zamiast nazw \texttt{length}, \texttt{push} albo \texttt{join}, które na pewno tam są. Najwidoczniej niektóre własności obiektów są ukryte\index{własności ukryte}. Jest ku temu bardzo dobry powód: wszystkie obiekty mają po kilka metod, np. \texttt{toString}\index{toString} konwertująca obiekt na łańcuch i nie chcielibyśmy ich znaleźć szukając np. kotów zapisanych w obiekcie.
+
+    
+Nie jest dla mnie jasne, dlaczego ukryte są własności obiektu \texttt{Math}. Może ktoś chciał, aby to był obiekt tajemnic.
+
+    
+Wszystkie własności dodawane przez Twoje programy do obiektów są widoczne. Nie da się ich ukryć, a szkoda, bo jak zobaczysz w \hyperref[chap:8]{rozdziale 8}, czasami możliwość dodawania do obiektów metod, które nie są widoczne dla instrukcji \texttt{for}/\texttt{in} jest przydatne.
+  
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Niektóre własności są przeznaczone tylko do odczytu, co znaczy, że można sprawdzać ich wartości, ale nie można ich modyfikować. Takie są np. własności wartości łańcuchowych.
+
+    
+Inne własności mogą być „aktywne”. Zmodyfikowanie ich powoduje, że \emph{coś} się dzieje. Na przykład zmniejszenie długości tablicy powoduje usunięcie części jej elementów:
+
+    
+\begin{verbatim} 
+var array = ["Niebo", "Ziemia", "Człowiek"];
+array.length = 2;
+show(array);
+// → ["Niebo", "Ziemia"]
+\end{verbatim}

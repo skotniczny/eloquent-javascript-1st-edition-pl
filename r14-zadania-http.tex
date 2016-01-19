@@ -1,0 +1,261 @@
+\chapter{ Żądania HTTP}
+\label{chap:14}
+
+Jak wspomniałem w \hyperref[chap:11]{rozdziale 11}, komunikacja na stronach WWW odbywa się za pośrednictwem protokołu \textbf{HTTP}. Proste \textbf{żądanie HTTP} może wyglądać tak:
+  
+\begin{verbatim} 
+GET /wp-content/ejs/files/fruit.txt HTTP/1.1
+Host: eloquentjavascript.net
+User-Agent: Jakaś przeglądarka
+\end{verbatim}
+  
+Jest to żądanie pliku \texttt{fruit.txt} do serwera znajdującego się pod adresem \texttt{eloquentjavascript.net}. Ponadto wiadomo, że użyty został protokół HTTP 1.1 ― wersja 1.0 również jest nadal używana i działa nieco inaczej. Wiersze \texttt{Host} i \texttt{User-Agent} mają strukturę odpowiadającą następującemu wzorcowi: słowo określające zawarte w nich informacje, średnik oraz sama informacja. Są to tzw. \textbf{nagłówki HTTP}. Nagłówek \texttt{User-Agent} informuje serwer, jaka przeglądarka (lub jaki program) wysłała żądanie. Dodatkowo zazwyczaj wysyłane są jeszcze inne nagłówki, np. określające typy dokumentów rozpoznawane przez klienta czy preferowany język.
+
+  
+W odpowiedzi na powyższe żądanie serwer może zwrócić następujące dane:
+
+  
+\begin{verbatim} 
+HTTP/1.1 200 OK
+Last-Modified: Mon, 23 Jul 2007 08:41:56 GMT
+Content-Length: 24
+Content-Type: text/plain
+
+jabłka, pomarańcze, banany
+\end{verbatim}
+  
+W pierwszym wierszu określona jest wersja protokołu HTTP oraz znajduje się informacja o stanie żądania. W tym przypadku kod stanu to \texttt{200}, co oznacza, że wszystko jest w porządku, nic niezwykłego się nie zdarzyło i został przesłany plik. Dalej znajduje się kilka nagłówków określających datę ostatniej modyfikacji pliku oraz jego długość i typ (zwykły tekst). Po nagłówkach znajduje się pusty wiersz, a za nim sam plik.
+
+  
+Podczas gdy żądania zaczynające się od słowa \texttt{GET}, oznaczającego, że klient chce tylko pobrać dokument, za pomocą słowa \texttt{POST} można informować, że w żądaniu do serwera wysyłane są jakieś informacje, które serwer ma w~jakiś sposób przetworzyć.\footnote{To nie są jedyne typy żądań. Istnieje też żądanie \texttt{HEAD} do pobierania nagłówków dokumentu, bez treści, \texttt{PUT} do dodawania dokumentów na serwer oraz \texttt{DELETE} do usuwania dokumentów. Typy te nie są używane przez przeglądarki i często nie obsługują ich serwery sieciowe, ale jeśli napisze się działające na serwerze programy do ich obsługi, to mogą być przydatne.}
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Gdy użytkownik kliknie łącze, zatwierdzi formularz albo inaczej spowoduje przejście do innej strony w przeglądarce, nastąpi wysłanie żądania HTTP i usunięcie starej strony, aby załadować nowy dokument. Zazwyczaj właśnie o to chodzi, bo tak działa sieć internetowa. Czasami jednak programy JavaScript potrzebują komunikacji z serwerem bez ponownego wczytywania strony. Na przykład przycisk Załaduj w konsoli służy do ładowania plików bez opuszczania strony.
+
+  
+Aby to było możliwe, program musi samodzielnie sporządzić żądanie HTTP. W nowoczesnych przeglądarkach dostępny jest specjalny interfejs, który pozwala to robić. Podobnie jak jest w przypadku otwierania nowych okien, interfejs ten podlega pewnym obostrzeniom. Aby uniemożliwić skryptom działanie na szkodę użytkowników, pozwolono im wysyłać żądania HTTP tylko do tej samej domeny, w której znajduje się strona, z której pochodzą.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Obiekt do tworzenia żądań HTTP w większości przeglądarek można utworzyć przy użyciu instrukcji \texttt{new XMLHttpRequest()}. W starszych wersjach Internet Explorera, w których pierwotnie te obiekty były używane, trzeba pisać \texttt{new ActiveXObject("Msxml2.XMLHTTP")} lub, w jeszcze starszych wersjach, \texttt{new ActiveXObject("Microsoft.XMLHTTP")}. \texttt{ActiveXObject} to interfejs przeglądarki Internet Explorer do różnych dodatków. Jesteśmy już przyzwyczajeni do pisania opakowań niwelujących różnice między przeglądarkami, a~więc napisanie jeszcze jednego nie sprawi nam kłopotu:
+
+  
+\begin{verbatim} 
+function makeHttpObject() {
+  try {return new XMLHttpRequest();}
+  catch (error) {}
+  try {return new ActiveXObject("Msxml2.XMLHTTP");}
+  catch (error) {}
+  try {return new ActiveXObject("Microsoft.XMLHTTP");}
+  catch (error) {}
+
+  throw new Error("Nie można utworzyć obiektu żądania HTTP.");
+}
+
+show(typeof(makeHttpObject()));
+\end{verbatim}
+  
+Powyższa funkcja próbuje utworzyć obiekt na trzy sposoby i wykrywa, które techniki nie zadziałały za pomocą konstrukcji \texttt{try}-\texttt{catch}. Jeśli żadna z~metod nie zadziała, co może się zdarzyć w bardzo starych przeglądarkach i~przy włączonych wysokich zabezpieczeniach, zgłaszany jest błąd.
+
+  
+A dlaczego obiekt ten nazywa się żądaniem \emph{XML} HTTP? Nazwa ta jest trochę myląca. Język XML służy do przechowywania danych tekstowych. Jego składnia zawiera elementy i atrybuty podobne do języka HTML, ale jest on bardziej uporządkowany i elastyczniejszy — do przechowywania własnych rodzajów danych można definiować własne elementy XML. Obiekty żądań HTTP mają wbudowane funkcje do obsługi dokumentów XML i dlatego właśnie mają XML w nazwie. Za ich pomocą można jednak też obsługiwać inne typy dokumentów i z mojego doświadczenia wynika, że do tych celów wykorzystuje się je równie często.
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Mając obiekt żądania HTTP możemy utworzyć żądanie podobne do wcześniej pokazanego przykładu.
+
+  
+\begin{verbatim} 
+var request = makeHttpObject();
+request.open("GET", "/wp-content/ejs/files/fruit.txt", false);
+request.send(null);
+print(request.responseText);
+ \end{verbatim}
+  
+Metoda \texttt{open} służy do konfigurowania żądań. W tym przypadku utworzyliśmy żądanie \texttt{GET} pliku \texttt{fruit.txt}. Podany tu adres URL jest względny, tzn. nie zawiera części \texttt{http://} ani nazwy serwera, dzięki czemu plik będzie szukany na serwerze, z którego został pobrany bieżący dokument. Trzeci parametr, \texttt{false}, jest opisany trochę dalej. Po wywołaniu metody \texttt{open} żądanie można wysłać przy użyciu metody \texttt{send}. Jeśli żądanie jest typu \texttt{POST}, to dane, które mają być wysłane do serwera (jako łańcuch) można przekazać jako argument tej metody. W przypadku żądania \texttt{GET}, należy przekazać wartość \texttt{null}.
+
+  
+Po wykonaniu żądania, własność \texttt{responseText} obiektu żądania zawiera treść otrzymanego dokumentu. Nagłówki przesłane przez serwer można znaleźć przy użyciu funkcji \texttt{getResponseHeader} i \texttt{getAllResponseHeaders}. Pierwsza znajduje konkretny nagłówek, a druga zwraca łańcuch zawierający wszystkie nagłówki. Dzięki nim można czasami zdobyć dodatkowe informacje o dokumencie.
+
+  
+\begin{verbatim} 
+print(request.getAllResponseHeaders());
+show(request.getResponseHeader("Last-Modified"));
+ \end{verbatim}
+  
+Jeśli trzeba dodać nagłówki do żądania wysyłanego na serwer, można użyć metody \texttt{setRequestHeader}. Metoda ta przyjmuje dwa argumenty: nazwę i wartość nagłówka.
+
+  
+Kod odpowiedzi, którym w przykładzie była liczba \texttt{200}, znajduje się we własności \texttt{status}. Jeśli coś się nie uda, w tym kodzie znajdziemy odpowiednią informację. Na przykład kod \texttt{404} oznacza, że żądany plik nie istnieje. Własność \texttt{statusText} zawiera trochę bardziej zrozumiały opis zaistniałego stanu.
+
+  
+\begin{verbatim} 
+show(request.status);
+show(request.statusText);
+ \end{verbatim}
+  
+Aby dowiedzieć się czy żądanie zostało poprawnie spełnione, najczęściej wystarczy porównać zawartość własności \texttt{status} z wartością \texttt{200}. Teoretycznie serwer może w niektórych przypadkach zwrócić kod \texttt{304} oznaczający, że nadal aktualna jest starsza wersja dokumentu przechowywana w pamięci podręcznej przeglądarki. Ale przeglądarki chyba chronią nas przed tym ustawiając \texttt{status} na \texttt{200} nawet, gdy jest to \texttt{304}. Ponadto, jeśli żądanie jest wysyłane przy użyciu innego protokołu niż HTTP\footnote{Nie tylko część „XML” nazwy \texttt{XMLHttpRequest} jest myląca ― obiektu tego można używać także do wysyłania żądań przy użyciu innych protokołów niż HTTP, a więc tylko słowo \texttt{Request} ma rację bytu w tej nazwie.}, np. FTP, własność \texttt{status} jest bezużyteczna, ponieważ protokół ten nie korzysta z kodów stanu HTTP.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Gdy żądanie zostanie wysłane tak jak w powyższym przykładzie, metoda \texttt{send} zwraca wartość dopiero po zakończeniu tego żądania. Jest to dla nas wygodne, ponieważ po zakończeniu działania metody \texttt{send} dostępna jest własność \texttt{responseText}, której możemy od razu zacząć używać. Jest jednak pewien problem. Jeśli serwer jest powolny albo plik jest duży, wykonania żądanie może sporo potrwać. W tym czasie program oczekuje, a wraz z nim cała przeglądarka. Dopóki żądanie nie zostanie zakończone, użytkownik nie może nic robić, nawet nie przewinie strony. Dlatego metoda ta nadaje się do użytku w sieciach lokalnych, które są szybkie i niezawodne. Ale na stronach w wielkim internecie nie powinno się jej stosować.
+
+  
+Ustawienie trzeciego argumentu metody \texttt{open} na \texttt{true} powoduje, że żądanie jest wysyłane w \textbf{trybie asynchronicznym}. W takim przypadku metoda \texttt{send} zwraca wartość natychmiast, a żądanie jest wykonywane w tle.
+
+  
+\begin{verbatim} 
+request.open("GET", "/wp-content/ejs/files/fruit.xml", true);
+request.send(null);
+show(request.responseText);
+ \end{verbatim}
+  
+Odczekaj chwilę i…
+
+  
+\begin{verbatim} 
+print(request.responseText);
+ \end{verbatim}
+  
+„Odczekanie chwilę” można zaimplementować przy użyciu funkcji \texttt{setTimeout} lub innej podobnej, ale jest na to lepszy sposób. Obiekt żądania ma własność \texttt{readyState} określającą stan tego obiektu. Gdy dokument jest w całości załadowany, jej wartość wynosi \texttt{4}, a wcześniej jest mniejsza\footnote{\texttt{0} (niezainicjowany) to stan obiektu przed wywołaniem na nim metody \texttt{open}. Wywołanie metody \texttt{open} zmienia go na \texttt{1} (otwarty). Wywołanie metody \texttt{send} powoduje zmianę na \texttt{2} (wysłany). Natomiast po odpowiedzi serwera wartość zmienia się na \texttt{3} (odbieranie). W końcu \texttt{4} oznacza „załadowany”.}. Aby reagować na zmiany tego stanu, można ustawić własność \texttt{onreadystatechange} obiektu na funkcję. Funkcja ta będzie wywoływana przy każdej zmianie stanu.
+
+  
+\begin{verbatim} 
+request.open("GET", "/wp-content/ejs/files/fruit.xml", true);
+request.send(null);
+request.onreadystatechange = function() {
+  if (request.readyState == 4)
+    show(request.responseText.length);
+};
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Jeśli plik otrzymany przez obiekt żądania jest dokumentem XML, we własności \texttt{responseXML} tego żądania znajduje się reprezentacja tego dokumentu. Reprezentacja ta ma podobne właściwości do drzewa DOM opisanego w \hyperref[chap:12]{rozdziale 12}, z tym wyjątkiem, że nie ma elementów przeznaczonych do pracy z HTML-em, takich jak \texttt{style} czy \texttt{innerHTML}. Własność \texttt{responseXML} zawiera obiekt dokumentu, którego własność \texttt{documentElement} odnosi się do zewnętrznego elementu dokumentu XML.
+
+  
+\begin{verbatim} 
+var catalog = request.responseXML.documentElement;
+show(catalog.childNodes.length);
+ \end{verbatim}
+  
+Takich dokumentów XML można używać do wymiany danych strukturalnych z serwerem. Ich format — elementy znajdujące się w innych elementach — pozwala na przechowywanie informacji, których przesłanie w postaci zwykłego tekstu byłoby trudne. Jednak interfejs DOM nie najlepiej nadaje się do pobierania takich informacji, a dokumenty XML często bywają bardzo rozwlekłe: Można odnieść wrażenie, że dokument \texttt{fruit.xml} zawiera dużo informacji, a tak naprawdę informuje, że „jabłka są czerwone, pomarańcze są pomarańczowe, a banany są żółte”.
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Alternatywnym dla XML-a formatem wymiany danych jest format JSON opracowany przez programistów JavaScript. W formacie tym wykorzystywana jest składnia wartości JavaScript do reprezentowania „hierarchicznych” informacji w zwięzły sposób. Dokument JSON jest plikiem zawierającym obiekt lub tablicę JavaScript zawierającą dowolną liczbę obiektów, tablic, łańcuchów, liczb, wartości logicznych oraz wartości \texttt{null}. Jako przykład możesz obejrzeć zawartość pliku \texttt{fruit.json}:
+
+  
+\begin{verbatim} 
+request.open("GET", "/wp-content/ejs/files/fruit.json", true);
+request.send(null);
+request.onreadystatechange = function() {
+  if (request.readyState == 4)
+    print(request.responseText);
+};
+ \end{verbatim}
+  
+Taki tekst można zamienić w zwykłą wartość JavaScript przy użyciu funkcji \texttt{eval}. Przed wywołaniem funkcji \texttt{eval} należy dodać nawias, ponieważ w~przeciwnym razie JavaScript może zinterpretować obiekt (znajdujący się w~klamrze) jako blok kodu i zgłosić błąd.
+
+  
+\begin{verbatim} 
+function evalJSON(json) {
+  return eval("(" + json + ")");
+}
+var fruit = evalJSON(request.responseText);
+show(fruit);
+ \end{verbatim}
+  
+Przekazując funkcji \texttt{eval} fragment tekstu należy pamiętać, że tekst ten może wykonać dowolny kod. Jako że w JavaScripcie można wysyłać żądania tylko do własnej domeny, najczęściej wie się, jaki tekst się otrzyma i nie stanowi to problemu. Jednak w innych sytuacjach może to być niebezpieczne.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 14.1}
+\label{sec:14.1}
+  
+    
+Napisz funkcję o nazwie \texttt{serializeJSON} przyjmującą wartość JavaScript i~zwracającą łańcuch będący reprezentacją tej wartości w formacie JSON. Proste wartości, takie jak liczby i logiczne, można zwyczajnie zamienić na łańcuchy za pomocą funkcji \texttt{String}. Obiekty i tablice można przetworzyć przy użyciu rekurencji.
+
+    
+Trudności może sprawiać rozpoznawanie tablic, które są typu \texttt{object}. Można użyć instrukcji \texttt{instanceof Array}, ale ta zadziała tylko w przypadku tablic utworzonych we własnym oknie ― inne używają prototypu \texttt{Array} z~innych okien i \texttt{instanceof} zwróci dla nich \texttt{false}. Istnieje też tania sztuczka polegająca na przekonwertowaniu własności \texttt{constructor} na łańcuch i sprawdzeniu, czy zawiera \texttt{"function Array"}.
+
+    
+Dokonując konwersji na typ łańcuchowy należy też zająć się znakami specjalnymi. Jeśli łańcuch zostanie umieszczony w podwójnym cudzysłowie, to specjalnymi sekwencjami trzeba będzie zastąpić znaki \texttt{\textbackslash "}, \texttt{ \textbackslash \textbackslash}, \texttt{\textbackslash f}, \texttt{\textbackslash b}, \texttt{\textbackslash n}, \texttt{\textbackslash t}, \texttt{\textbackslash r} oraz \texttt{\textbackslash v}\footnote{Znak \texttt{\textbackslash n} już znamy — jest to znak nowego wiersza. \texttt{\textbackslash t} to znak tabulatora, \texttt{\textbackslash r} to znak powrót karetki, który w niektórych systemach jest używany przed lub zamiast znaku nowego wiersza do oznaczania końca wiersza. Znaki \texttt{\textbackslash b} (backspace), \texttt{\textbackslash v} (pionowy tabulator), \texttt{\textbackslash f} (wysuw strony) są przydatne w pracy ze starymi drukarkami, natomiast w przeglądarkach nie mają zastosowania.}.
+
+  
+[\hyperref[sol:14.1]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Jeśli często wysyłamy żądania, to oczywiście nie chcemy w kółko powtarzać rytuału \texttt{open}, \texttt{send}, \texttt{onreadystatechange}. Możemy napisać bardzo proste opakowanie, jak poniższe:
+
+  
+\begin{verbatim} 
+function simpleHttpRequest(url, success, failure) {
+  var request = makeHttpObject();
+  request.open("GET", url, true);
+  request.send(null);
+  request.onreadystatechange = function() {
+    if (request.readyState == 4) {
+      if (request.status == 200)
+        success(request.responseText);
+      else if (failure)
+        failure(request.status, request.statusText);
+    }
+  };
+}
+
+simpleHttpRequest("/wp-content/ejs/files/fruit.txt", print);
+ \end{verbatim}
+  
+Funkcja ta pobiera podany jej adres URL i wywołuje funkcję przekazaną jako drugi argument. Trzeci argument, jeśli zostanie zdefiniowany, służy do powiadamiania o niepowodzeniu ― kod inny niż \texttt{200}.
+
+  
+Aby móc wykonywać bardziej złożone żądania, można dodać tej funkcji jeszcze inne parametry, do określania metody (\texttt{GET} lub \texttt{POST}), opcjonalnego łańcucha, który ma być przekazany jako dane, do dodawania nagłówków itd. Gdy argumentów jest dużo, dobrym pomysłem jest przekazywanie ich w~obiekcie, jak opisałem w \hyperref[chap:9]{rozdziale 9}.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Niektóre strony internetowe prowadzą intensywną komunikację między programami działającymi na kliencie i na serwerze. W przypadku takich systemów dobrym pomysłem jest traktowanie niektórych żądań HTTP jako wywołań funkcji działających na serwerze. Klient wysyła żądanie pod określony adres URL identyfikujący funkcje przekazując argumenty jako parametry URL lub dane \texttt{POST}. Następnie serwer wywołuje funkcję i zapisuje wynik w~dokumencie JSON lub XML i wysyła go w odpowiedzi. Gdy napisze się kilka funkcji pomocniczych, wywoływanie funkcji na serwerze może być prawie tak łatwe jak wywoływanie funkcji na kliencie, oczywiście z tą różnicą, że wyniki nie będą dostępne natychmiast.

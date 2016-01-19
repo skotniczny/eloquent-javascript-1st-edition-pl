@@ -1,0 +1,403 @@
+\chapter{Modularność}
+\label{chap:9}
+
+  
+Tematem tego rozdziału jest organizacja programów. W małych programach kwestia ta praktycznie nie występuje. Ale z czasem niektóre aplikacje rozrastają się do tego poziomu, że trudno jest zapanować nad ich strukturą i~zrozumieć ich działanie. Dość szybko kod programu może zacząć przypominać \textbf{spaghetti}, czyli bezkształtną masę, w której wydaje się, że wszystko jest ze sobą wzajemnie powiązane.
+
+  
+Tworząc strukturę programu wykonuje się dwie czynności. Dzieli się go na mniejsze części zwane \textbf{modułami}\index{moduł}, z których każdy pełni jakąś rolę, i określa się relacje między między nimi.
+
+  
+W \hyperref[chap:8]{rozdziale 8} podczas pracy nad terrarium użyliśmy kilku funkcji utworzonych jeszcze w \hyperref[chap:6]{rozdziale 6}. Ponadto w rozdziale tym zostały zdefiniowane pewne pojęcia które nie mają nic wspólnego z terrariami, takie jak metoda \texttt{clone} i typ \texttt{Dictionary}. Wszystko to zostało wrzucone do środowiska, jak do worka. Program ten można by było podzielić na moduły następująco:
+
+\begin{itemize}
+    \item moduł \texttt{FunctionalTools} zawierałby funkcje z \hyperref[chap:6]{rozdziału 6} i nie byłby zależny od żadnego innego.
+    \item Moduł \texttt{ObjectTools} zawierałby takie składniki, jak \texttt{clone} i \texttt{create} i byłby zależny od modułu \texttt{FunctionalTools}.
+    \item Moduł \texttt{Dictionary}, zawierający typ słownikowy byłby zależny od modułu \texttt{FunctionalTools}.
+    \item Moduł \texttt{Terrarium} byłby zależny od modułów \texttt{ObjectTools} i \texttt{Dictionary}.
+\end{itemize}
+  
+Gdy jeden moduł jest zależny od innego, używa jego funkcji lub zmiennych i może działać tylko, gdy ten moduł jest załadowany.
+
+  
+Należy uważać, aby te zależności\index{zależność} nie tworzyły błędnego koła. Oprócz tego, że sprawiają trudności natury praktycznej (jeśli moduły \texttt{A} i \texttt{B} są wzajemnie zależne, to który powinien zostać załadowany pierwszy?), to dodatkowo zamazują relacje między modułami i mogą powodować, że powstanie modularna wersja wspominanego \textbf{kodu spaghetti}.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Większość nowoczesnych języków programowania ma wbudowany jakiś system modularyzacji, ale nie JavaScript. Po raz kolejny musimy sami coś wymyślić. Najprostszym sposobem wydaje się umieszczenie każdego modułu w osobnym pliku. Dzięki temu wyraźnie widać, jaki kod zawiera każdy moduł.
+
+  
+Przeglądarki wczytują pliki JavaScript dołączane do stron internetowych za pomocą elementu HTML \texttt{<script>}\index{script} z atrybutem \texttt{src}. Pliki zawierające kod JavaScript najczęściej mają rozszerzenie \texttt{.js}. W konsoli ładowanie plików jest realizowane przez funkcję \texttt{load}.
+
+  
+\begin{verbatim} 
+load("FunctionalTools.js");
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Czasami wpisanie poleceń wczytania plików w niewłaściwej kolejności powoduje błędy. Jeśli jakiś moduł próbuje utworzyć obiekt \texttt{Dictionary}, ale moduł \texttt{Dictionary} jeszcze nie został naładowany, nie uda się znaleźć konstruktora i operacja nie zostanie wykonana.
+
+  
+Można pomyśleć, że problem ten jest łatwy do rozwiązania. Wystarczy na początku pliku modułu umieścić kilka wywołań funkcji \texttt{load}, aby załadować wszystkie moduły, które są mu potrzebne. Niestety przeglądarki internetowe działają w taki sposób, że wywołanie funkcji \texttt{load} nie powoduje natychmiastowego załadowania pliku. Plik jest wczytywany dopiero \emph{po} zakończeniu wykonywania bieżącego pliku. Zwykle wtedy jest już za późno.
+
+  
+W większości przypadków można sobie poradzić zarządzając zależnościami ręcznie: wpisując elementy \texttt{script} w kodzie HTML strony we właściwej kolejności.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Zarządzanie zależnościami można częściowo zautomatyzować na dwa sposoby. Pierwszy polega na utworzeniu osobnego pliku z informacjami o zależnościach między modułami. Plik ten może być ładowany pierwszy, a znajdujące się w nim informacje mogą być wykorzystane do określenia kolejności ładowania pozostałych plików. Drugi sposób polega na zrezygnowaniu z~elementu \texttt{script} (funkcja \texttt{load} wewnętrznie go tworzy i dodaje) i pobieraniu zawartości pliku bezpośrednio (zobacz \hyperref[chap:14]{rozdział 14}), a następnie wykonywaniu jej za pomocą funkcji \texttt{eval}. W ten sposób skrypty są ładowane natychmiast, co ułatwia pracę.
+
+  
+Funkcja \texttt{eval}\index{eval} (nazwa pochodzi od ang. słowa evaluate — oszacować) jest bardzo ciekawa. Przekazuje się jej wartość łańcuchową, a ona wykonuje ten łańcuch jako kod JavaScript.
+
+  
+\begin{verbatim} 
+eval("print(\"Jestem łańcuchem w łańcuchu!\");");
+// → Jestem łańcuchem w łańcuchu!
+\end{verbatim}
+  
+Zapewne domyślasz się, że przy jej użyciu można zrobić wiele fajnych rzeczy. Kod może tworzyć inny kod, a następnie go wykonywać. Jednak większość problemów, które można wykonać pomysłowo wykorzystując funkcję \texttt{eval} można również wykonać przy użyciu funkcji anonimowych, które dodatkowo stwarzają mniejsze ryzyko wystąpienia dziwnych problemów.
+
+  
+Gdy funkcja \texttt{eval} jest wywoływana wewnątrz funkcji, wszystkie nowe zmienne stają się lokalne w tej funkcji. Gdyby zatem w jakiejś wersji funkcji \texttt{load} użyto funkcji \texttt{eval}, załadowanie modułu \texttt{Dictionary} spowodowałoby utworzenie konstruktora \texttt{Dictionary} wewnątrz funkcji \texttt{load} i zniknąłby on natychmiast po zakończeniu działania przez tę funkcję. Istnieją sposoby na obejście tego, ale są trochę niezgrabne.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Przyjrzymy się krótko pierwszej technice zarządzania zależnościami. Potrzebny jest w niej specjalny plik zawierający informacje o zależnościach, np.:
+
+  
+\begin{verbatim} 
+var dependencies =
+  {"ObjectTools.js": ["FunctionalTools.js"],
+   "Dictionary.js":  ["ObjectTools.js"],
+   "TestModule.js":  ["FunctionalTools.js", "Dictionary.js"]};
+ \end{verbatim}
+  
+W obiekcie \texttt{dependencies} znajduje się po jednej własności dla każdego pliku, który zależy od innych plików. Wartości tych własności są tablicami nazw plików. Zauważ, że nie mogliśmy tu użyć obiektu \texttt{Dictionary}, ponieważ nie mamy pewności, czy moduł \texttt{Dictionary} został już załadowany. Ponieważ wszystkie własności w tym obiekcie mają końcówkę \texttt{.js}, jest mało prawdopodobne, aby kolidowały z ukrytymi własnościami typu \texttt{\_\_proto\_\_} czy \texttt{hasOwnProperty}.
+
+  
+Menedżer zależności musi wykonywać dwa działania. Po pierwsze pilnuje, aby pliki były ładowane we właściwej kolejności ładując zależności każdego pliku przed samym tym plikiem. Po drugie pilnuje, aby żaden plik nie został załadowany dwa razy. Wielokrotne wczytanie pliku może powodować problemy i jest stratą czasu.
+
+  
+\begin{verbatim} 
+var loadedFiles = {};
+
+function require(file) {
+  if (dependencies[file]) {
+    var files = dependencies[file];
+    for (var i = 0; i < files.length; i++)
+      require(files[i]);
+  }
+  if (!loadedFiles[file]) {
+    loadedFiles[file] = true;
+    load(file);
+  }
+}
+ \end{verbatim}
+  
+Teraz do ładowania plików wraz z zależnościami można używać funkcji \texttt{require}\index{require}. Zwróć uwagę, jak funkcja ta rekurencyjnie wywołuje sama siebie, aby zająć się zależnościami (i ewentualnie zależnościami zależności).
+
+  
+\begin{verbatim} 
+require("TestModule.js");
+\end{verbatim}
+  
+\begin{verbatim} 
+test();
+// → Testing FunctionalTools: map(partial(op["*"], 5), [3, 6, 15])
+// → [15, 30, 75]
+// → Testing ObjectTools: clone({x: 10, y: 5}).x
+// → 10
+// → Testing Dictionary: (new Dictionary({left: true})).contains("right")
+// → false
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Gdy program jest budowany z zestawu małych modułów, to zazwyczaj używa się w nim dużej liczby niewielkich plików. W programowaniu sieciowym ładowanie dużej liczby plików JavaScript może spowolnić wczytywanie stron. Ale nie musi tak być. Testowy program można napisać jako zbiór małych plików, a przez opublikowaniem w internecie można je połączyć w~jeden duży plik.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Podobnie jak typ obiektowy, moduł ma interfejs. W modułach będących prostymi zbiorami funkcji, jak \texttt{FunctionalTools}, interfejs zwykle składa się z~wszystkich funkcji zdefiniowanych w module. W innych przypadkach na interfejs modułu składa się tylko niewielka część zdefiniowanych w nim funkcji. Na przykład nasz system zamieniający rękopis na format HTML opisany w~\hyperref[chap:6]{rozdziale 6} wymaga w interfejsie tylko jednej funkcji — \texttt{renderFile}. (Podsystem tworzący kod HTML mógłby być osobnym modułem.)
+
+  
+W przypadku modułów zawierających definicję tylko jednego typu obiektowego, jak \texttt{Dictionary}, interfejs modułu jest tożsamy z interfejsem tego typu.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+W języku JavaScript zmienne wszystkie najwyższego poziomu znajdują się w jednym miejscu. W przeglądarkach tym miejscem jest obiekt o nazwie \texttt{window}. Nazwa ta jest trochę dziwna. Lepsza byłaby \texttt{environment} (środowisko) albo \texttt{top} (najwyższy), ale ponieważ przeglądarki wiążą środowisko JavaScript z oknem (albo „ramką”), ktoś uznał, że wybór nazwy \texttt{window} jest uzasadniony.
+
+  
+\begin{verbatim} 
+show(window);
+// → {close: <function close()>, …}
+show(window.print == print);
+// → true
+show(window.window.window.window.window);
+// → {close: <function close()>, …}
+\end{verbatim}
+  
+Jak wykazałem w trzecim wierszu powyższego kodu, nazwa \texttt{window} jest jedynie własnością obiektu środowiska wskazującą na siebie.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Gdy w środowisku znajduje się dużo kodu, używanych jest wiele nazw zmiennych najwyższego poziomu. Gdy ilość kodu będzie na tyle duża, że nie będziesz w stanie wszystkiego zapamiętać, to pojawi się ryzyko, że w końcu przez przypadek użyjesz jakiejś nazwy po raz drugi. To spowoduje awarię w miejscu, w którym używana była oryginalna wartość. Sytuacja, w której liczba zmiennych najwyższego rzędu jest bardzo duża nazywa się \textbf{zaśmieceniem przestrzeni nazw}\index{zaśmiecanie przestrzeni nazw}. W JavaScripcie jest to bardzo niebezpieczne, ponieważ język ten nie ostrzega, gdy redefiniowana jest istniejąca zmienna.
+
+  
+Nie da się tego problemu rozwiązać całkowicie, ale można zredukować ryzyko starając się nie zaśmiecać środowiska. Przede wszystkim w modułach wszystkie zmienne nie należące do zewnętrznego interfejsu nie powinny być najwyższego poziomu.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Brak możliwości definiowania wewnętrznych funkcji i zmiennych w modułach oczywiście stanowi utrudnienie. Na szczęście można to obejść stosując pewną sztuczkę. Cały kod modułu pisze się w funkcji, a na koniec wszystkie zmienne należące do interfejsu modułu dodaje się do obiektu \texttt{window}. Dzięki temu, że zostały utworzone w tej samej funkcji, wszystkie funkcje modułu „widzą” się wzajemnie, ale kod znajdujący się na zewnątrz modułu ich nie widzi.
+
+  
+\begin{verbatim} 
+function buildMonthNameModule() {
+  var names = ["Styczeń", "Luty", "Marzec", "Kwiecień",
+               "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień",
+               "Październik", "Listopad", "Grudzień"];
+  function getMonthName(number) {
+    return names[number];
+  }
+  function getMonthNumber(name) {
+    for (var number = 0; number < names.length; number++) {
+      if (names[number] == name)
+        return number;
+    }
+  }
+
+  window.getMonthName = getMonthName;
+  window.getMonthNumber = getMonthNumber;
+}
+buildMonthNameModule();
+
+show(getMonthName(11));
+// → "Grudzień"
+\end{verbatim}
+  
+Jest to bardzo prosty moduł zamieniający nazwy miesięcy na numery miesięcy (np. do użytku w obiekcie \texttt{Date}, w którym styczeń to \texttt{0}). Zauważ jednak, że \texttt{buildMonthNameModule} nadal jest zmienną najwyższego poziomu nie będącą częścią interfejsu modułu. Ponadto nazwy funkcji interfejsu musimy powtarzać trzy razy. Ech.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Pierwszy problem można rozwiązać czyniąc funkcję modułu anonimową i~wywołując ją bezpośrednio. W tym celu wartość funkcji musimy umieścić w~klamrze, ponieważ jeśli tego nie zrobimy, dla JavaScriptu będzie to definicja zwykłej funkcji, która nie może być wywoływana bezpośrednio.
+
+  
+Drugi problem można rozwiązać przy użyciu funkcji pomocniczej \texttt{provide}, której można podać obiekt zawierający wartości, które muszą zostać wyeksportowane do obiektu \texttt{window}.
+
+  
+\begin{verbatim} 
+function provide(values) {
+  forEachIn(values, function(name, value) {
+    window[name] = value;
+  });
+}
+ \end{verbatim}
+  
+Korzystając z tego możemy napisać taki moduł:
+
+  
+\begin{verbatim} 
+(function() {
+  var names = ["Niedziela", "Poniedziałek", "Wtorek", "Środa",
+               "Czwartek", "Piątek", "Sobota"];
+  provide({
+    getDayName: function(number) {
+      return names[number];
+    },
+    getDayNumber: function(name) {
+      for (var number = 0; number < names.length; number++) {
+        if (names[number] == name)
+          return number;
+      }
+    }
+  });
+})();
+
+show(getDayNumber("Środa"));
+// → 3
+\end{verbatim}
+  
+Nie polecam pisania modułów w taki sposób od samego początku. Podczas pracy łatwiej jest stosować prostą technikę, jaką stosowaliśmy do tej pory i wszystko wrzucać na najwyższy poziom. Dzięki temu można sprawdzać i~testować wewnętrzne wartości modułu w przeglądarce. Gdy moduł zostanie ukończony, nietrudno będzie zapakować go w funkcję.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Są przypadki, w których moduł eksportuje tak dużo zmiennych, że umieszczenie ich wszystkich w środowisku najwyższego poziomu jest złym pomysłem. Wówczas można zrobić to samo, co robi standardowy obiekt \texttt{Math}, czyli zaprezentować cały moduł jako jeden obiekt, którego własności są eksportowanymi funkcjami i wartościami. Na przykład:
+
+  
+\begin{verbatim} 
+var HTML = {
+  tag: function(name, content, properties) {
+    return {name: name, properties: properties, content: content};
+  },
+  link: function(target, text) {
+    return HTML.tag("a", [text], {href: target});
+  }
+  /* ... kolejne funkcje tworzące elementy HTML ... */
+};
+ \end{verbatim}
+  
+Gdyby zawartość modułu była potrzebna tak często, że ciągłe wpisywanie \texttt{HTML} byłoby uciążliwe, zawsze można by było go przenieść do najwyższego poziomu środowiska za pomocą funkcji \texttt{provide}.
+
+  
+\begin{verbatim} 
+provide(HTML);
+show(link("http://download.oracle.com/docs/cd/E19957-01/816-6408-10/object.htm",
+          "Tak działają obiekty."));
+// → {name: "a", properties: {…}, content: […], …}
+\end{verbatim}
+  
+Można nawet połączyć technikę funkcyjną z obiektową umieszczając wewnętrzne zmienne modułu w funkcji i zwracając przez tę funkcję obiekt zawierający jego zewnętrzny interfejs.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Podobny problem z zaśmiecaniem przestrzeni nazw występuje przy dodawaniu metod do standardowych prototypów, jak \texttt{Array} i \texttt{Object}. Jeśli dwa moduły dodadzą metodę \texttt{map} do prototypu \texttt{Array.prototype}, możesz mieć problem. Jeśli wynik działania obu tych wersji metody \texttt{map} będzie taki sam, to może nic złego się nie stać, ale to będzie czysty przypadek.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Projektowanie interfejsu modułów i typów obiektowych jest jednym z~subtelnych elementów sztuki programowania. Z jednej strony nie chcemy ujawniać zbyt wielu szczegółów,  ponieważ tylko będą przeszkadzać podczas używania modułu. Z drugiej strony nie chcemy \emph{nadmiernie} upraszczać i generalizować, ponieważ moglibyśmy uniemożliwić używanie modułu w skomplikowanych lub specjalnych sytuacjach.
+
+  
+Czasami dobrym rozwiązaniem jest utworzenie dwóch interfejsów. Jeden szczegółowy do zastosowań w skomplikowanych sprawach, a drugi uproszczony do użytku w pozostałych sytuacjach. Drugi interfejs można łatwo zbudować przy użyciu narzędzi udostępnianych przez pierwszy.
+
+  
+W innych przypadkach trzeba tylko wymyślić na czym oprzeć swój interfejs. Porównaj to z podejściami do dziedziczenia opisanymi w \hyperref[chap:8]{rozdziale 8}. Stawiając w centrum prototypy zamiast konstruktorów udało się nam znacznie uprościć niektóre rzeczy.
+
+  
+Niestety najlepszym sposobem nauki projektowania poprawnych interfejsów jest używanie przez jakiś czas niepoprawnych. Gdy w końcu ma się ich dość, zaczyna się szukać sposobu na ich udoskonalenie i przy okazji sporo się uczy. Nie zakładaj, że słaby interfejs taki już po prostu musi być. Popraw go albo zapakuj w lepszy interfejs (przykład tego przedstawiłem w \hyperref[chap:12]{rozdziale 12}).
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Istnieją funkcje wymagające dużej ilości argumentów. Czasami jest to spowodowane tym, że są źle zaprojektowane i wystarczy je podzielić na kilka mniejszych funkcji. Jednak czasami nie ma innej możliwości. Zazwyczaj argumenty te mają jakieś sensowne wartości domyślne. Moglibyśmy np. napisać kolejną rozszerzoną wersję funkcji \texttt{range}.
+
+  
+\begin{verbatim} 
+function range(start, end, stepSize, length) {
+  if (stepSize == undefined)
+    stepSize = 1;
+  if (end == undefined)
+    end = start + stepSize * (length - 1);
+
+  var result = [];
+  for (; start <= end; start += stepSize)
+    result.push(start);
+  return result;
+}
+
+show(range(0, undefined, 4, 5));
+// → [0, 4, 8, 12, 16]
+\end{verbatim}
+  
+Zapamiętanie, w którym miejscu powinien znajdować się każdy z argumentów może być trudne, nie mówiąc już o tym, jak denerwujące byłoby wpisywanie \texttt{undefined} jako drugi argument zawsze, gdy używany jest argument \texttt{length}. Przekazywanie argumentów do tej funkcji moglibyśmy uprościć pakując je w obiekt.
+
+  
+\begin{verbatim} 
+function defaultTo(object, values) {
+  forEachIn(values, function(name, value) {
+    if (!object.hasOwnProperty(name))
+      object[name] = value;
+  });
+}
+
+function range(args) {
+  defaultTo(args, {start: 0, stepSize: 1});
+  if (args.end == undefined)
+    args.end = args.start + args.stepSize * (args.length - 1);
+
+  var result = [];
+  for (; args.start <= args.end; args.start += args.stepSize)
+    result.push(args.start);
+  return result;
+}
+
+show(range({stepSize: 4, length: 5}));
+// → [0, 4, 8, 12, 16]
+\end{verbatim}
+  
+Funkcja \texttt{defaultTo} służy do dodawania domyślnych wartości do obiektów. Kopiuje własności swojego drugiego argumentu do swojego pierwszego argumentu pomijając te, które już mają wartości.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Moduł lub grupa modułów, której można użyć w więcej niż jednym programie nazywa się \textbf{biblioteką}\index{biblioteka}. Dla wielu języków programowania dostępne są ogromne biblioteki kodu wysokiej jakości. Dzięki temu programiści nie muszą za każdym razem pisać wszystkiego od początku i mogą szybciej pracować. Także dla języka JavaScript liczba bibliotek jest całkiem pokaźna.
+
+  
+I wydaje się, że wciąż rośnie. Istnieją biblioteki zawierające takie podstawowe narzędzia, jak \texttt{map} czy \texttt{clone}. W innych językach tak przydatne konstrukcje są dostępne standardowo, ale w JavaScripcie trzeba je budować samodzielnie albo używać bibliotek, jeśli chce się ich używać. Z bibliotek warto korzystać z wielu powodów: pozwalają zaoszczędzić na pracy, a zawarty w~nich kod jest o wiele lepiej przetestowany niż to, co sami napiszemy.
+
+  
+Do najpopularniejszych bibliotek JavaScript zaliczają się \href{http://www.prototypejs.org/}{prototype}, \href{http://mootools.net}{mootools}, \href{http://jquery.com}{jQuery} i \href{http://mochi.github.io/mochikit/}{MochiKit}. Dostępne są też bardziej rozbudowane „szkielety” zawierające znacznie więcej niż tylko zestaw podstawowych narzędzi. W~tej kategorii do najpopularniejszych należą \href{http://yuilibrary.com/}{YUI} (własność Yahoo) i \href{http://dojotoolkit.org/}{Dojo}. Wszystkie wymienione biblioteki są darmowe i dostępne do pobrania w internecie. Moja ulubiona to MochiKit, ale to tylko kwestia gustu. Gdy staniesz się poważnym programistą JavaScript, przejrzyj dokumentacje tych bibliotek, aby mieć ogólne rozeznanie jak działają i do czego można je wykorzystać.
+
+  
+Fakt że podstawowy zestaw narzędzi jest praktycznie niezbędny do napisania jakiegokolwiek większego programu w JavaScripcie w połączeniu z~faktem, że istnieje tak dużo różnych zestawów narzędzi sprawia, że programiści mają twardy orzech do zgryzienia. Muszą bowiem wybrać czy ich biblioteka ma zależeć od jakiejś innej biblioteki czy też wolą wszystko napisać od początku sami. Wybór pierwszej opcji utrudnia używanie biblioteki osobom używającym innego zestawu narzędzi, a wybór drugiej sprawia, że w~kodzie biblioteki będzie dużo kodu, który nie jest niezbędny. Ten dylemat może być jedną z przyczyn, dla których wciąż jest względnie mało dobrych i powszechnie używanych bibliotek JavaScript. Niewykluczone że przyszłe zmiany w~standardzie ECMAScript i przeglądarkach wiele z tych zestawów narzędzi uczynią niepotrzebnymi i częściowo problem zostanie rozwiązany.

@@ -1,0 +1,337 @@
+\chapter{ Wyrażenia regularne}
+\label{chap:10}
+
+  
+W poprzednich rozdziałach kilka razy szukaliśmy różnych wzorców w łańcuchach. W \hyperref[chap:4]{rozdziale 4} wydobywaliśmy daty z łańcuchów wypisując precyzyjnie pozycje, na których znajdowały się liczby będące częścią daty. Później w \hyperref[chap:6]{rozdziale 6} oglądaliśmy wyjątkowo paskudne fragmenty kodu do znajdowania wybranych typów znaków w łańcuchach, np. znaków, które w kodzie HTML trzeba zastąpić encjami.
+
+  
+\textbf{Wyrażenia regularne}\index{Wyrażenie regularne} to język do opisywania \textbf{wzorców w łańcuchach}. Jest to niewielki, ale osobny język, który został wbudowany w JavaScript (a także inne języki programowania). Kod w tym języku nie jest zbyt czytelny, a rozbudowane wyrażenia regularne są wręcz niemożliwe do odczytania. Jest to jednak bardzo przydatne narzędzie pozwalające znacznie uprościć operacje związane z obróbką łańcuchów.
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Podobnie jak łańcuchy wpisuje się w podwójnych cudzysłowach, wyrażenia regularne pisze się między ukośnikami (\texttt{/}\index{/}). To oznacza, że jeśli w wyrażeniu jest użyty ukośnik, to trzeba zastosować unik.
+
+  
+\begin{verbatim} 
+var slash = /\//;
+show("AC/DC".search(slash));
+ \end{verbatim}
+  
+Metoda \texttt{search}\index{search} działaniem przypomina \texttt{indexOf}, tylko zamiast łańcucha szuka wyrażenia regularnego. Wzorce definiowane za pomocą wyrażeń regularnych mają pewne właściwości, których pozbawione są łańcuchy. Po pierwsze niektóre ich elementy mogą pasować do więcej niż jednego znaku. W~\hyperref[chap:6]{rozdziale 6} aby wydobyć znaczniki z dokumentu musieliśmy znaleźć pierwszą gwiazdkę lub klamrę w łańcuchu. Taką operację można wyrazić następująco:
+
+  
+\begin{verbatim} 
+var asteriskOrBrace = /[\{\*]/;
+var story =
+  "Spostrzegliśmy *gigantycznego lemura* zwisającego z gałęzi.";
+show(story.search(asteriskOrBrace));
+ \end{verbatim}
+  
+Znaki \texttt{[} i \texttt{]} w wyrażeniach regularnych mają specjalne przeznaczenie. Można między nimi wpisywać znaki i wówczas wyrażenie takie oznacza „którykolwiek z tych znaków”. W wyrażeniach regularnych specjalne znaczenie ma większość znaków nie alfanumerycznych, dlatego dobrym pomysłem jest poprzedzanie ich zawsze ukośnikiem\footnote{W tym przypadku ukośniki wsteczne nie były niezbędne, ponieważ znaki te znajdują się w nawiasie \texttt{[} \texttt{]}, ale lepiej jest ich użyć mimo to, aby nie musieć o tym pamiętać.}, gdy są używane jako zwykłe znaki.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Dla często używanych zbiorów znaków dostępne są specjalne skrócone formy zapisu. Kropka (\texttt{.}) oznacza „dowolny znak nie będący znakiem nowego wiersza”, „d” z ukośnikiem (\texttt{\textbackslash d}) oznacza „dowolna cyfra”, „w” z ukośnikiem (\texttt{\textbackslash w}) pasuje do każdego znaku alfanumerycznego (nie wiedzieć czemu zalicza się do nich też znak podkreślenia), a „s” z ukośnikiem (\texttt{\textbackslash s}) pasuje do wszelkich białych znaków (tabulatora, nowego wiersza, spacji).
+
+  
+\begin{verbatim} 
+var digitSurroundedBySpace = /\s\d\s/;
+show("1a 2 3d".search(digitSurroundedBySpace));
+ \end{verbatim}
+  
+Znaki „d”, „w” oraz „s” z ukośnikiem mają też odpowiedniki w postaci wielkich liter, które oznaczają ich odwrotność. Na przykład \texttt{\textbackslash S} pasuje do każdego znaku \emph{nie} będącego białym znakiem. Gdy używany jest nawias \texttt{[]}, wzorzec można odwrócić stawiając przed nim znak \texttt{\^}:
+
+  
+\begin{verbatim} 
+var notABC = /[^ABC]/;
+show("ABCBACCBBADABC".search(notABC));
+ \end{verbatim}
+  
+Jak widać, sposób używania znaków w wyrażeniach regularnych sprawia, że za pomocą tych wyrażeń można tworzyć bardzo krótkie i trudne do czytania wzorce.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 10.1}
+\label{sec:10.1}
+  
+    
+Napisz wyrażenie regularne dopasowujące datę w formacie \texttt{"XX/XX/XXXX"}, gdzie znaki \texttt{X} są cyframi. Wypróbuj je na łańcuchu \texttt{"urodzeni 15/11/2003 (matka Spot): White Fang"}.
+
+  
+[\hyperref[sol:10.1]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Czasami trzeba sprawdzić, czy wzorzec zaczyna się na początku lub kończy na końcu łańcucha. Do tego służą znaki specjalne \texttt{\^} i \texttt{\$}. Pierwszy dopasowuje początek łańcucha, a drugi koniec.
+
+  
+\begin{verbatim} 
+show(/e+/.test("ble"));
+show(/^e+$/.test("ble"));
+ \end{verbatim}
+  
+Pierwsze z powyższych wyrażeń pasuje do każdego łańcucha zawierającego znak \texttt{e}, a drugie tylko do tych łańcuchów, które w całości składają się ze znaków \texttt{e}.
+
+  
+Warto podkreślić, że wyrażenia regularne są obiektami i mają metody. Metoda \texttt{test}\index{test} zwraca wartość logiczną oznaczającą czy dany łańcuch pasuje do wyrażenia regularnego.
+
+  
+Kod \texttt{\textbackslash b} dopasowuje „granice słów”, którymi mogą być znaki przestankowe, białe znaki oraz początek i koniec łańcucha.
+
+  
+\begin{verbatim} 
+show(/kat/.test("kontaktenacja"));
+show(/\bkat\b/.test("konkatenacja"));
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Można zezwolić, aby wybrane części wzorca powtarzały się pewną liczbę razy. Umieszczenie gwiazdki (\texttt{*}) za elementem oznacza, że może się on powtarzać dowolną liczbę razy, także zero. Plus (\texttt{+}) oznacza, że element może powtarzać się przynajmniej raz. Znak zapytania (\texttt{?}) oznacza, że element jest opcjonalny, tzn. może występować zero razy lub raz.
+
+  
+\begin{verbatim} 
+var parenthesizedText = /\(.*\)/;
+show("Jego (leniwca) pazury były gigantyczne!".search(parenthesizedText));
+ \end{verbatim}
+  
+W razie potrzeby za dopuszczalną liczbę powtórzeń elementu można dokładnie określić przy użyciu klamry. Liczbę tę należy wpisać w klamrze, np. \texttt{\{4\}}. Jeśli wpisze się dwie liczby rozdzielone przecinkiem (np. \texttt{\{3,10\}}), oznacza to, że element musi występować przynajmniej tyle razy, ile wynosi pierwsza liczba i maksymalnie tyle razy, ile wynosi druga. Analogicznie \texttt{\{2,\}} oznacza dwa wystąpienia lub więcej, a \texttt{\{,4\}} oznacza cztery lub mniej.
+
+  
+\begin{verbatim} 
+var datePattern = /\d{1,2}\/\d\d?\/\d{4}/;
+show("urodzeni 15/11/2003 (matka Spot): White Fang".search(datePattern));
+ \end{verbatim}
+  
+Zapisy \texttt{/\textbackslash d\{1,2\}/} i \texttt{/\textbackslash d\textbackslash d?/} oznaczają „jedna lub dwie cyfry”.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 10.2}
+\label{sec:10.2}
+  
+    
+Napisz wzorzec dopasowujący adresy e-mail. Dla uproszczenia przyjmij założenie, że przed i za znakiem \texttt{@} mogą znajdować się tylko znaki alfanumeryczne oraz znaki \texttt{.} i \texttt{-} (kropka i łącznik), natomiast w ostatniej części adresu, zawierającej kod kraju za ostatnią kropką, mogą znajdować się tylko znaki alfanumeryczne i ich liczba musi wynosić dwa lub trzy.
+
+  
+[\hyperref[sol:10.2]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Części wyrażeń regularnych można grupować za pomocą nawiasów. Dzięki temu można stosować \texttt{*} i inne znaki do więcej niż jednego znaku. Na przykład:
+
+  
+\begin{verbatim} 
+var cartoonCrying = /boo(hoo+)+/i;
+show("Następnie wykrzyknął „Boohoooohoohooo”".search(cartoonCrying));
+ \end{verbatim}
+  
+Skąd się wzięła litera \texttt{i} na końcu tego wyrażenia regularnego? Za ukośnikiem zamykającym wyrażenie można dodawać opcje dla tego wyrażenia. Litera \texttt{i} tutaj oznacza, że wielkość liter nie ma znaczenia, dzięki czemu mała litera b we wzorcu pasuje do wielkiej litery B w łańcuchu.
+
+  
+Pionowa kreska (\texttt{|}) umożliwia wybór jednego spośród dwóch elementów. Na przykład:
+
+  
+\begin{verbatim} 
+var holyCow = /(sacred|holy) (cow|bovine|bull|taurus)/i;
+show(holyCow.test("Sacred bovine!"));
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Często szukanie wzorca jest tylko pierwszym krokiem do wydobycia czegoś z łańcucha. W poprzednich rozdziałach ciągi z łańcuchów były wydobywane za pomocą metod \texttt{indexOf} i \texttt{slice}. Teraz znając wyrażenia regularne możemy zamiast nich używać metody \texttt{match}. Przy porównywaniu łańcucha z wyrażeniem regularnym można otrzymać w wyniku wartość \texttt{null}, jeśli dopasowanie nie uda się albo tablicę dopasowanych łańcuchów.
+
+  
+\begin{verbatim} 
+show("Nie".match(/Tak/));
+show("... tak".match(/tak/));
+show("Wielka małpa".match(/wielka (\w+)/i));
+ \end{verbatim}
+  
+Pierwszy element w zwróconej tablicy zawsze jest tą częścią łańcucha, która pasowała do wzorca. Jak pokazuje ostatni przykład, jeśli we wzorcu znajdują się części w nawiasach, dopasowane przez nie części również zostają dodane do tablicy. To bardzo ułatwia wydobywanie kawałków łańcuchów.
+
+  
+\begin{verbatim} 
+var parenthesized = prompt("Powiedz mi coś", "").match(/\((.*)\)/);
+if (parenthesized != null)
+  print("Umieściłeś w nawiasie „", parenthesized[1], "”");
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 10.3}
+\label{sec:10.3}
+  
+    
+Napisz jeszcze raz funkcję \texttt{extractDate} z \hyperref[chap:4]{rozdziału 4}. Funkcja ta, gdy przekaże się jej łańcuch, szuka czegoś, co ma określony format daty. Jeśli uda się znaleźć taką datę, zapisuje wartości w obiekcie \texttt{Date}. W przeciwnym razie zgłasza wyjątek. Niech akceptuje daty, w których dzień lub miesiąc zostały zapisane przy użyciu tylko jednej cyfry.
+
+  
+[\hyperref[sol:10.3]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Metoda \texttt{replace}\index{replace} wartości łańcuchowych, którą widzieliśmy już w \hyperref[chap:6]{rozdziale 6}, może przyjmować wyrażenie regularne jako pierwszy argument.
+
+  
+\begin{verbatim} 
+print("Borobudur".replace(/[ou]/g, "a"));
+ \end{verbatim}
+  
+Zwróć uwagę na znak \texttt{g} za wyrażeniem regularnym. Litera ta oznacza „globalny”, czyli że każda część łańcucha, która pasuje do wzorca ma zostać wymieniona. Gdyby nie było litery \texttt{g}, zamieniona zostałaby tylko pierwsza litera \texttt{o}.
+
+  
+Czasami trzeba zachowywać części zamienionych łańcuchów. Na przykład mamy długi łańcuch zawierający imiona i nazwiska, po jednej parze na wiersz, w formacie „Nazwisko, Imię”. Chcemy zamienić imiona i nazwiska miejscami oraz usunąć przecinki, aby uzyskać format „Imię Nazwisko”.
+
+  
+\begin{verbatim} 
+var names = "Picasso, Pablo\nGauguin, Paul\nVan Gogh, Vincent";
+print(names.replace(/([\w ]+), ([\w ]+)/g, "$2 $1"));
+ \end{verbatim}
+  
+Ciągi \texttt{\$1} i \texttt{\$2} w łańcuchu zamiany odnoszą się do części znajdujących się we wzorcu w nawiasach. Ciąg \texttt{\$1} zostaje zastąpiony tekstem dopasowanym do pierwszej pary nawiasów, a \texttt{\$2} — do drugiej itd. aż do \texttt{\$9}.
+
+  
+Jeśli nawiasów jest więcej niż 9, ta metoda nie zadziała. Ale jest jeszcze inny sposób na zamianę łańcuchów, który może być przydatny także w kilku innych trudnych sytuacjach. Gdy drugi argument metody \texttt{replace} jest funkcją, a nie łańcuchem, funkcja ta jest wywoływana za każdym razem, gdy zostanie znalezione dopasowanie i dopasowany tekst jest zastępowany tym, co zwraca ta funkcja. Argumenty przekazane do funkcji są dopasowywanymi elementami, podobnie do wartości w tablicach zwracanych przez metodę \texttt{match} pierwszy jest całym dopasowaniem, a za nim znajdują się argumenty dla każdej „nawiasowej” części wzorca.
+
+  
+\begin{verbatim} 
+function eatOne(match, amount, unit) {
+  amount = Number(amount) - 1;
+  if (amount == 1) {
+    unit = unit.slice(0, unit.length - 1);
+  }
+  else if (amount == 0) {
+    unit = unit + "s";
+    amount = "no";
+  }
+  return amount + " " + unit;
+}
+
+var stock = "1 lemon, 2 cabbages, and 101 eggs";
+stock = stock.replace(/(\d+) (\w+)/g, eatOne);
+
+print(stock);
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 10.4}
+\label{sec:10.4}
+  
+    
+Ostatnią sztuczkę można wykorzystać do poprawienia funkcji wstawiającej encje HTML z \hyperref[chap:6]{rozdziału 6}. Przypomnę, jak wyglądała: 
+
+    
+\begin{verbatim} 
+function escapeHTML(text) {
+  var replacements = [[/&/g, "&amp;"], [/"/g, "&quot;"],
+                      [/</g, "&lt;"], [/>/g, "&gt;"]];
+  forEach(replacements, function(replace) {
+    text = text.replace(replace[0], replace[1]);
+  });
+  return text;
+}
+ \end{verbatim}
+    
+Napisz nową funkcję \texttt{escapeHTML}, która robi to samo, co stara, ale wywołuje funkcję \texttt{replace} tylko raz.
+
+  
+[\hyperref[sol:10.4]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Czasami wzorzec, którego trzeba będzie używać do dopasowywania nie jest znany podczas pisania kodu. Wyobraź sobie, że piszesz bardzo prosty filtr brzydkich słów dla tablicy ogłoszeń. Chcesz, aby przepuszczał tylko te ogłoszenia, które nie zawierają wulgaryzmów. Administrator tablicy może zdefiniować listę słów, których nie akceptuje.
+
+  
+Najlepszym sposobem na sprawdzenie czy w tekście znajdują się słowa z~pewnego zbioru jest użycie wyrażeń regularnych. Jeśli lista brzydkich słów zostanie zapisana w postaci tablicy, to wyrażenie regularne możemy utworzyć tak:
+
+  
+\begin{verbatim} 
+var badWords = ["małpa", "krowa", "osioł", "baran", "kaszalot"];
+var pattern = new RegExp(badWords.join("|"), "i");
+function isAcceptable(text) {
+  return !pattern.test(text);
+}
+
+show(isAcceptable("Mmmm, baranina."));
+show(isAcceptable("A to stara baranica"));
+ \end{verbatim}
+  
+Moglibyśmy dodać wzorce \texttt{\textbackslash b} wokół słów, dzięki czemu wyrażenia typu „baranina” nie byłyby traktowane jako brzydkie. To jednak spowodowałoby również przepuszczenie drugiego przypadku, co chyba nie jest pożądane. Bardzo trudno jest utworzyć dobry filtr wulgaryzmów i zazwyczaj filtry takie są zbyt denerwujące, żeby je stosować.
+
+  
+Pierwszy argument konstruktora \texttt{RegExp}\index{RegExp} jest łańcuchem zawierającym wzorzec, a w drugim można dodać opcję ignorowania wielkości liter lub „globalności”. Tworząc łańcuch wzorca należy uważać na ukośniki wsteczne. Ponieważ normalnie ukośniki te są usuwane podczas interpretowania łańcucha, wszystkie takie znaki, które mają znajdować się w wyrażeniu muszą zostać zastąpione specjalną sekwencją:
+
+  
+\begin{verbatim} 
+var digits = new RegExp("\\d+");
+show(digits.test("101"));
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Najważniejsze jeśli chodzi o wyrażenia regularne jest to, aby wiedzieć, że istnieją i że mogą bardzo pomóc w napisaniu kodu do obróbki łańcuchów. Są jednak tak zawiłe, że zanim użyjesz ich pierwszy raz, to pewnie będziesz miał z dziesięć nieudanych podejść. Nie poddawaj się, a już wkrótce będziesz pisać wyrażenia przypominające hieroglify jakiegoś czarnoksiężnika.
+
+\bigskip 
+\centerline{\includegraphics[width=\textwidth]{xkcd_regular_expressions}} 
+\smallskip
+  
+(Komiks autorstwa \href{http://xkcd.com}{Randalla Munroe’a}.)

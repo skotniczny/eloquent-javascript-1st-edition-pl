@@ -1,0 +1,869 @@
+\chapter{Podstawy JavaScriptu. Wartości, zmienne i kontrola sterowania}
+\label{chap:2}
+
+W świecie komputerów istnieją tylko dane. Jeśli coś nie jest informacją, to po prostu nie istnieje. Mimo że wszystkie dane to w istocie jedynie sekwencje bitów\footnote{Bit to dowolny byt mogący mieć jedną z dwóch wartości, które zazwyczaj opisuje się jako \texttt{0} i \texttt{1}. W komputerze wartości te są reprezentowane przez wysoką i niską wartość ładunku elektrycznego, silny i słaby sygnał albo lśniącą lub matową powierzchnię na płycie CD.}, a więc zasadniczo są tym samym, każda informacje odgrywa jakąś rolę. W systemie JavaScriptu większość danych jest zgrabnie wyodrębniona w postaci tzw. wartości\index{wartość}. Każda wartość ma typ determinujący, jaką rolę ta wartość może pełnić. Wyróżnia się sześć podstawowych typów danych: liczby, łańcuchy, wartości logiczne, obiekty, funkcje oraz wartości niezdefiniowane.
+
+    
+Aby utworzyć wartość, wystarczy nadać jej nazwę. Jest to bardzo wygodne. Nie trzeba gromadzić materiałów do budowy wartości, ani za nie płacić. Wystarczy tylko nadać jej nazwę i \emph{abrakadabra}, gotowe. Chociaż oczywiście wartości nie biorą się z niczego. Każda musi być gdzieś zapisana i jeśli utworzysz gigantyczną liczbę wartości na raz, to może zabraknąć Ci miejsca w pamięci komputera. Na szczęście problem ten dotyczy tylko sytuacji, w~których wszystkie te wartości są potrzebne na raz. Gdy wartość przestaje być używana, zostaje usunięta i pozostaje po niej tylko kilka bitów. Bity te są odzyskiwane, aby można było ich użyć do przechowywania następnych wartości.
+
+  
+\begin{center}
+• • • • •
+\end{center} 
+
+Wartości typu liczbowego\index{liczba} to, jak się można spodziewać, liczby. Zapisuje się je tak, jak normalne liczby:
+
+\begin{verbatim} 
+144
+\end{verbatim}
+    
+Jeśli wpiszesz tę liczbę w konsoli, w oknie wyjściowym pokaże się ta sama liczba. Wpisany przez Ciebie tekst spowodował utworzenie wartości liczbowej, a konsola wyświetliła ją na ekranie. Ten przykład niczego ciekawego nie pokazuje, ale wkrótce będziemy tworzyć wartości na inne sposoby i wówczas możliwość wypróbowania tego, co się utworzyło w konsoli będzie bardzo przydatna.
+
+    
+A tak wygląda liczba \texttt{144} w postaci bitowej\footnote{Jeśli spodziewałeś się tu zobaczyć wartość \texttt{10010000}, to dobrze myślisz. W JavaScripcie liczby nie są jednak przechowywane jako liczby całkowite.}:
+
+\begin{verbatim} 
+0100000001100010000000000000000000000000000000000000000000000000
+\end{verbatim}
+    
+Powyższa liczba składa się z 64 bitów. Z tylu bitów składają się wszystkie liczby w języku \textbf{JavaScript}, co ma jeden ważny skutek: ilość liczb, jakie można w ten sposób wyrazić jest ograniczona. Za pomocą trzech cyfr dziesiętnych można wyrazić tylko liczby od 0 do 999, czyli $10^{3}$ = 1000 różnych liczb. Przy użyciu 64 cyfr binarnych można zapisać $2^{64}$ różnych liczb. To bardzo dużo, więcej niż $10^{19}$ (jedynka z dziewiętnastoma zerami).
+
+    
+Jednak nie wszystkie liczby całkowite mniejsze od $10^{19}$ dadzą się wyrazić przy użyciu typów liczbowych języka JavaScript. Jednym z powodów jest to, że istnieją również liczby ujemne i jeden bit musi zostać użyty do przechowywania znaku liczby. Jeszcze większym problemem jest to, że reprezentowane muszą być liczby nie będące całkowitymi. Dlatego 11 bitów jest używanych do przechowywania informacji o położeniu kropki oddzielającej część całkowitą od ułamkowej.
+
+    
+W ten sposób pozostają 52 bity\footnote{Tak naprawdę to 53, ponieważ stosowana jest sztuczka pozwalająca uzyskać jeden dodatkowy bit. Jeśli interesują Cię szczegóły, zajrzyj do standardu IEEE 754.}. Każda liczba całkowita mniejsza od $2^{52}$ (co jest więcej niż $10^{15}$) da się bez problemu wyrazić w JavaScripcie. Zazwyczaj używa się o wiele mniejszych liczb i opisane problemy w ogóle nas nie dotyczą. Bardzo dobrze. Nie mam nic przeciwko bitom, ale żeby cokolwiek zrobić, trzeba mieć ich ogromną ilość. Gdy jest to możliwe, przyjemniej jest posługiwać się większymi obiektami.
+
+    
+Liczby ułamkowe zapisuje się z użyciem kropki.
+
+    \begin{verbatim} 
+9.81
+ \end{verbatim}
+    
+Do wyrażania bardzo dużych i bardzo małych liczb można też używać notacji naukowej. W tym celu należy dodać literę \texttt{e} i wykładnik potęgi:
+
+    \begin{verbatim} 
+2.998e8
+ \end{verbatim}
+    
+Powyższy zapis jest równoważny z $2.998 \times 10^{8} = 299800000$.
+
+    
+Działania wykonywane na liczbach całkowitych mieszczących się w granicy 52 bitów są zawsze dokładne. Niestety tego samego nie można powiedzieć o liczbach ułamkowych. Tak samo, jak nie można przy użyciu skończonej liczby cyfr dziesiętnych precyzyjnie określić wartości liczby π (pi), wielu liczb nie można precyzyjnie wyrazić przy użyciu tylko 64 bitów. Szkoda, ale tak naprawdę powoduje to realne problemy tylko w pewnych specyficznych sytuacjach. Ważne jest, aby o tym pamiętać i traktować ułamkowe liczby dziesiętne jako przybliżenia, a nie dokładne wartości.
+
+  
+  \begin{center}
+• • • • •
+\end{center}
+  
+    
+Liczb najczęściej używa się do wykonywania działań arytmetycznych. Działania te, np. dodawanie czy mnożenie, polegają na pobraniu dwóch liczb i utworzeniu z nich nowej wartości. W języku JavaScript wygląda to tak:
+
+\begin{verbatim} 
+100 + 4 * 11
+\end{verbatim}
+    
+Znaki \texttt{+}\index{+} i \texttt{*}\index{*} nazywają się operatorami. Pierwszy oznacza dodawanie, a drugi mnożenie. Umieszczenie operatora między dwiema wartościami powoduje zastosowanie\index{zastosowanie} go do tych wartości i utworzenie nowej wartości.
+
+    
+Czy ten przykład oznacza „dodaj 4 do 100, a następnie pomnóż otrzymany wynik przez 11”, czy może jednak mnożenie zostanie wykonane przed dodawaniem? Jak zapewne zgadłeś, najpierw wykonane zostanie mnożenie. Ale, podobnie jak w matematyce, można to zmienić za pomocą nawiasów\index{()}
+
+\begin{verbatim} 
+(100 + 4) * 11
+\end{verbatim}
+    
+Do odejmowania służy operator \texttt{-}\index{$-$}, a do dzielenia \texttt{/}\index{/}. Gdy w wyrażeniu znajduje się kilka operatorów i nie ma żadnych nawiasów, działania są wykonywane zgodnie z zasadami kolejności wykonywania działań\index{kolejność wykonywania działań}. W pierwszym przykładzie udowodniłem, że mnożenie ma pierwszeństwo przed dodawaniem. Dzielenie i mnożenie są zawsze wykonywane przed odejmowaniem i dodawaniem. Jeśli obok siebie wystąpią operatory o takim samym priorytecie (\texttt{1 - 1 + 1}), to są  wykonywane po kolei od lewej.
+
+    
+Spróbuj obliczyć wynik poniższego wyrażenia, a potem wykonaj program, aby sprawdzić, czy dobrze policzyłeś…
+
+\begin{verbatim} 
+115 * 4 - 4 + 88 / 2
+\end{verbatim}
+    
+Nie musisz jednak zbytnio przejmować się zasadami kolejności wykonywania działań, ponieważ w razie wątpliwości zawsze możesz użyć nawiasów.
+
+    
+Istnieje jeszcze jeden operator arytmetyczny, którego możesz nie znać. Oznacza się go symbolem \texttt{\%}\index{\%} i reprezentuje on działanie zwracania reszty z~dzielenia\index{reszta z dzielenia}. Wynikiem działania \texttt{X \% Y} będzie reszta z podzielenia \texttt{X} przez \texttt{Y}. Na przykład \texttt{314 \% 100} wynosi \texttt{14}, \texttt{10 \% 3} wynosi \texttt{1}, a \texttt{144 \% 12} równa się \texttt{0}. Reszta z dzielenia ma taki sam priorytet, jak mnożenie i dzielenie.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Drugi typ danych to łańcuch\index{łańcuch}. Jego przeznaczenie nie jest w tak oczywisty sposób związane z nazwą, jak w przypadku liczb, ale ten typ również jest bardzo potrzebny. Łańcuchy służą do reprezentowania tekstu, a ich nazwa zapewne wzięła się stąd, że wartości tego typu są po prostu ciągami znaków. Łańcuchy zapisuje się cudzysłowach prostych:
+
+\begin{verbatim} 
+"Załataj moją łódkę gumą do żucia."
+\end{verbatim}
+    
+W podwójnym cudzysłowie można wpisać prawie wszystko, a JavaScript zrobi z tego wartość łańcuchową. Jest jednak kilka znaków, na które trzeba uważać. Po pierwsze trudności w cudzysłowie sprawiają właśnie cudzysłowy. Po drugie problemy możesz mieć ze wstawianiem znaków nowego wiersza\index{koniec linii}, czyli tych znaków, które są wstawiane, gdy użytkownik naciśnie klawisz Enter. Ich również nie można umieszczać w cudzysłowach, ponieważ każdy łańcuch musi w całości znajdować się w jednym wierszu.
+
+    
+Do wstawiania tych znaków do łańcuchów używa się sztuczki. Ukośnik (\texttt{\textbackslash}) w cudzysłowie oznacza, że znak znajdujący się za nim ma specjalne znaczenie. Jeśli za ukośnikiem znajduje się cudzysłów prosty, to cudzysłów ten nie spowoduje zakończenia łańcucha, ale stanie się jego częścią. Natomiast znak \texttt{n} za ukośnikiem oznacza nowy wiersz. Analogicznie \texttt{t} za ukośnikiem oznacza tabulator\footnote{Gdy wpiszesz wartości łańcuchowe w konsoli, zostaną one zwrócone z cudzysłowami i ukośnikami, dokładnie tak, jak zostały wpisane. Aby poprawnie wyświetlić specjalne znaki, można napisać \texttt{print("a\textbackslash nb")} ― wkrótce wyjaśnię, dlaczego tak jest.}.
+
+\begin{verbatim} 
+"To jest pierwszy wiersz\nA to jest drugi wiersz"
+\end{verbatim}
+    
+Jeśli wpiszesz ten tekst w konsoli, to zostanie on wyświetlony w oknie wyjściowym w niezmienionej formie, tzn. z cudzysłowami i ukośnikami. Aby zobaczyć sam wynik, możesz wpisać np. \texttt{print("a\textbackslash nb")}. Działanie tej instrukcji zostanie szczegółowo objaśnione później.
+
+    
+Oczywiście zdarza się też, że w tekście ma znajdować się sam ukośnik jako jeden ze zwykłych znaków. Aby umieścić ukośnik w łańcuchu, należy wpisać dwa ukośniki bezpośrednio obok siebie:
+
+    \begin{verbatim} 
+"Znak nowego wiersza zapisuje się tak: \"\\n\"."
+ \end{verbatim}
+  
+  \begin{center}
+• • • • •
+\end{center}
+  
+    
+Łańcuchów nie można dzielić, mnożyć ani odejmować. \emph{Można} natomiast używać z nimi operatora \texttt{+}\index{+}. Jednak w przypadku łańcuchów operator ten nie dodaje tylko wykonuje konkatenację, czyli po prostu łączenie.
+
+\begin{verbatim} 
+"kon" + "kat" + "e" + "nacja"
+\end{verbatim}
+    
+Na łańcuchach można wykonywać także inne działania, ale wrócimy do tego później.
+
+  
+  \begin{center}
+• • • • •
+\end{center}
+  
+    
+Nie wszystkie operatory mają postać symboliczną. Niektóre występują jako słowa. Na przykład operator \texttt{typeof}\index{typeof} tworzy wartość łańcuchową reprezentującą typ podanej mu wartości.
+
+\begin{verbatim} 
+typeof 4.5
+\end{verbatim}
+    
+Operatory, które poznałeś wcześniej działały na dwóch argumentach, natomiast \texttt{typeof} pobiera tylko jeden. Operatory wykonujące działania na dwóch argumentach nazywają się binarnymi\index{operator binarny} lub dwuargumentowymi\index{operator dwuargumentowy}, natomiast działające na pojedynczych wartościach to operatory jednoargumentowe. Operator minus\index{$-$} może być używany zarówno jako dwu- jak i jednoargumentowy:
+
+\begin{verbatim} 
+- (10 - 2)
+\end{verbatim}
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Kolejnym typem wartości są wartości logiczne\index{typ logiczny}. Są tylko dwie takie wartości: \texttt{true}\index{true} i \texttt{false}\index{false}. Oto jeden ze sposobów na uzyskanie wartości \texttt{true}:
+
+\begin{verbatim} 
+3 > 2
+\end{verbatim}
+    
+Natomiast \texttt{false} można otrzymać tak:
+
+\begin{verbatim} 
+3 < 2
+\end{verbatim}
+    
+Mam nadzieję, że wiesz, co oznaczają znaki \texttt{>}\index{>} i \texttt{<}\index{<}. Są to odpowiednio znak większości i mniejszości. Są to operatory dwuargumentowe, a wynikiem ich działania jest wartość logiczna oznaczająca, czy dane wyrażenie jest prawdziwe, czy fałszywe.
+
+    
+W ten sam sposób można porównywać łańcuchy:
+
+\begin{verbatim} 
+"Aardvark" < "Zoroaster"
+\end{verbatim}
+    
+Łańcuchy są porządkowane mniej więcej alfabetycznie. Mniej więcej… Wielkie litery są zawsze „mniejsze” od małych, a więc wartością wyrażenia \texttt{"Z" < "a"} (wielka litera Z i mała litera a) jest \texttt{true}. Znaki nie należące do alfabetu (\texttt{!}, \texttt{@}, itd.) również są uwzględniane w porządkowaniu. W rzeczywistości porównywanie znaków odbywa się na podstawie standardu Unicode\index{Unicode}. W~standardzie tym każdemu znakowi, jaki sobie można wyobrazić, od znaków greckiego alfabetu przez arabski, japoński i tamilski aż po polski, przypisany jest numer. Numery te ułatwiają przechowywanie łańcuchów w komputerze, ponieważ można je zapisywać jako listy liczb. Podczas porównywania łańcuchów JavaScript porównuje po prostu numery znaków w tych łańcuchach od lewej.
+
+    
+Inne operatory tego typu to \texttt{>=}\index{>=} (większy lub równy), \texttt{<=}\index{<=} (mniejszy lub równy), \texttt{==}\index{==} (równy) oraz \texttt{!=}\index{!=} (różny).
+
+\begin{verbatim} 
+"Szast" != "Prast"
+\end{verbatim}
+
+\begin{verbatim} 
+5e2 == 500
+\end{verbatim}
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Na wartościach logicznych można też wykonywać pewne działania, które są bardzo przydatne. JavaScript obsługuje trzy operatory logiczne: \emph{i}, \emph{lub} oraz \emph{nie}. Można ich używać do „rozumowania” o wartościach logicznych.
+
+    
+Logiczne \emph{and} jest reprezentowane przez operator \texttt{\&\&}\index{\&\&}. Jest to operator logiczny, który zwraca wartość \texttt{true} tylko wtedy, gdy oba jego argumenty mają wartość \texttt{true}.
+
+\begin{verbatim} 
+true && false
+\end{verbatim}
+    
+Operator \texttt{||}\index{||} to logiczne \emph{lub}. Zwraca wartość \texttt{true}, gdy którykolwiek z jego argumentów ma wartość \texttt{true}:
+
+\begin{verbatim} 
+true || false
+\end{verbatim}
+    
+Operator logicznego \emph{nie} ma postać wykrzyknika (\texttt{!}\index{!}). Jest to operator jednoargumentowy zamieniający podaną mu wartość na przeciwną, a więc \texttt{!true} oznacza \texttt{false}, a \texttt{!false} oznacza \texttt{true}.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+\section*{Ćwiczenie 2.1}
+\label{sec:2.1}
+    
+\begin{verbatim} 
+((4 >= 6) || ("zielona" != "trawa")) && !(((12 * 2) == 144) && true)
+\end{verbatim}
+      
+Prawda czy fałsz? W kodzie tym znajduje się sporo nawiasów, które ułatwiają jego zrozumienie, ale nie są niezbędne. Można go zapisać prościej w~taki sposób:
+
+\begin{verbatim} 
+(4 >= 6 || "zielona" != "trawa") && !(12 * 2 == 144 && true)
+\end{verbatim}
+    
+[\hyperref[sol:2.1]{pokaż rozwiązanie}]
+    
+    
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Nie zawsze jest oczywiste, czy nawiasy są potrzebne. Zazwyczaj wystarczy tylko pamiętać, że z operatorów poznanych do tej pory najniższy priorytet ma \texttt{||}, następny jest \texttt{\&\&}, później są operatory porównawcze (\texttt{>}, \texttt{==} itd.), a potem reszta. Priorytety operatorów zostały tak dobrane, że w prostych przypadkach można obejść się z minimalną ilością nawiasów.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+We wszystkich przedstawionych do tej pory przykładach język JavaScript był używany w taki sam sposób, jak używa się kalkulatora kieszonkowego. Po prostu tworzone były określone wartości, na których wykonywano działania przy użyciu operatorów. Tworzenie wartości w ten sposób jest ważną częścią każdego programu JavaScript, ale nie jedyną. Kod zwracający jakąś wartość nazywa się wyrażeniem\index{wyrażenie}. Wyrażeniem jest każda wartość zapisana bezpośrednio w kodzie (np. \texttt{22} albo \texttt{"psychoanaliza"}). To, co znajduje się w nawiasie również jest wyrażeniem. Jest nim także operator dwuargumentowy zastosowany do dwóch wyrażeń jak i operator jednoargumentowy zastosowany do jednego wyrażenia.
+
+    
+Są jeszcze inne sposoby tworzenia wyrażeń, ale poznasz je w stosownym czasie.
+
+    
+Istnieje też jednostka programowa o szerszym zakresie niż wyrażenie. Jest to instrukcja\index{instrukcja}. Program jest zestawem instrukcji. Większość z nich jest zakończona średnikiem\index{średnik} (\texttt{;}). Najprostsza instrukcja to wyrażenie zakończone średnikiem. To jest program:
+
+\begin{verbatim} 
+1;
+!false;
+\end{verbatim}
+    
+Program ten jest bezużyteczny. Wyrażenie może być jedynie treścią stanowiącą jakąś wartość, natomiast instrukcja ma sens tylko wtedy, gdy coś zmienia. Może np. drukować coś na ekranie — to liczy się jako zmiana czegoś w otaczającym świecie — albo zmieniać wewnętrzny stan programu, co spowoduje zmianę działania dalszych instrukcji. Zmiany te nazywają się „skutkami ubocznymi”\index{skutki uboczne}. Instrukcje w powyższym przykładzie tworzą tylko wartości \texttt{1} i \texttt{true}, a następnie wrzucają je do wora z nieużywanymi bitami\footnote{Wór na bity to miejsce, w którym przechowywane są stare bity. W niektórych systemach programista musi własnoręcznie go od czasu do czasu opróżniać. Na szczęście w JavaScripcie odzyskiwanie zasobów odbywa się w pełni automatycznie.}. Nie ma to żadnego wpływu na otaczający je świat i nie wywołuje żadnych skutków ubocznych.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+W jaki sposób program utrzymuje swój stan wewnętrzny? Jak to się dzieje, że różne rzeczy są przez niego pamiętane? Widzieliśmy już przykłady tworzenia nowych wartości z istniejących wartości. Te operacje nie powodowały zmiany tych starych wartości, a nowa wartość musi zostać od razu użyta, jeśli nie chcemy, aby zniknęła.  Dlatego do przechowywania wartości\index{wartość} w języku JavaScript używa się zmiennych.
+
+\begin{verbatim} 
+var iloczyn = 5 * 5;
+\end{verbatim}
+    
+\textbf{Zmienna} musi mieć nazwę i może wskazywać jakąś wartość. Powyższa instrukcja tworzy zmienną o nazwie \texttt{iloczyn} i zapisuje w niej wynik mnożenia \texttt{5} razy \texttt{5}.
+
+    
+Gdy uruchomisz ten program, możesz wpisać w konsoli słowo \texttt{iloczyn}, aby wyświetlić wartość \texttt{25}. Nazwa zmiennej służy do pobierania reprezentowanej przez nią wartości. Można też napisać \texttt{iloczyn + 1}. Nazw zmiennych można używać jako wyrażeń, a więc mogą one wchodzić w skład także większych wyrażeń.
+
+    
+Do tworzenia zmiennych służy słowo kluczowe \texttt{var}\index{var}. Po nim należy wpisać nazwę zmiennej. Jako nazwy zmiennej można użyć prawie każdego słowa. Nie można natomiast w nazwach zmiennych używać spacji.  Także cyfry są dozwolone, np. \texttt{iloczyn22}, ale nie mogą znajdować się na początku. Znaki \texttt{\$} i \texttt{\_} również mogą występować w nazwach zmiennych i mają w nich taki sam status, jak litery, a więc nazwa \texttt{\$\_\$} jest poprawna.
+
+    
+Jeśli chcesz utworzonej zmiennej od razu przypisać wartość, co często się robi, możesz użyć operatora \texttt{=}\index{=}, aby przypisać jej wartość jakiegoś wyrażenia.
+
+    
+Przypisanie zmiennej wartości nie oznacza, że musi tak pozostać na zawsze. Wartość istniejącej zmiennej można w dowolnym momencie zmienić za pomocą operatora \texttt{=}.
+
+\begin{verbatim} 
+iloczyn = 4 * 4;
+\end{verbatim}
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Zmienne najlepiej jest wyobrażać sobie jako przyssawki, nie pudełka. Jest tak dlatego, ponieważ wartości \emph{nie} są w nich przechowywane, a jedynie zmienne do tych wartości \emph{się odwołują} ― nie ma przeszkód, aby dwie różne zmienne odwoływały się do tej samej wartości. Program ma dostęp tylko do tych wartości, do których są jakieś odwołania. Gdy trzeba coś zapamiętać, przyczepia się do tego nową przyssawkę albo odczepia się istniejącą od czegoś innego i przyczepia w nowym miejscu: aby zapamiętać, ile pieniędzy winny jest Ci Lutek, możesz napisać…
+
+\begin{verbatim} 
+var dlugLutka = 140;
+\end{verbatim}
+    
+Gdy Lutek zwróci część tej kwoty, wartość tę można zmniejszyć przypisując zmiennej nową liczbę:
+
+\begin{verbatim} 
+dlugLutka = dlugLutka - 35;
+\end{verbatim}
+    
+Zbiór zmiennych i ich wartości w określonym czasie nazywa się środowiskiem\index{środowisko}. Nie jest ono puste podczas uruchamiania programu. Zawsze znajduje się w nim kilka standardowych zmiennych. Gdy przeglądarka wczytuje stronę, tworzy nowe środowisko i dodaje do niego te standardowe zmienne. Zmienne tworzone i modyfikowane przez programy na tej stronie istnieją dopóki nie zostanie otwarta nowa strona.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Wiele wartości dostępnych w standardowym środowisku jest typu funkcyjnego\index{funkcja}. Funkcja to fragment programu zapakowanego w wartości. Zazwyczaj fragment ten robi coś pożytecznego i można go wywołać za pomocą zawierającej go wartości. W środowisku przeglądarki istnieje zmienna \texttt{alert}\index{alert} przechowująca funkcję wyświetlającą małe okienko dialogowe z komunikatem. Używa się jej następująco:
+
+\begin{verbatim} 
+alert("Awokado");
+\end{verbatim}
+    
+Wykonanie kodu funkcji nazywa się wywołaniem funkcji\index{wywołanie funkcji}. Do tego celu używa się nawiasu. Wywołać przy użyciu nawiasów\index{()} można każde wyrażenie tworzące wartość funkcyjną. W powyższym przykładzie funkcji przekazano wartość \texttt{"Awokado"}, która została wyświetlona jako napis w oknie dialogowym. Wartości przekazywane do funkcji nazywają się parametrami\index{parametr} lub argumentami\index{argument}. Funkcja \texttt{alert} wymaga tylko jednego argumentu, ale są funkcje, którym trzeba podać więcej parametrów.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Wyświetlenie okna dialogowego jest efektem ubocznym. Wiele funkcji jest przydatnych właśnie ze względu na ich efekty uboczne. Funkcja może też tworzyć wartość i wtedy jest przydatna mimo że nie ma skutku ubocznego. Istnieje np. funkcja o nazwie \texttt{Math.max}\index{Math.max}, która przyjmuje dowolną liczbę wartości liczbowych i zwraca największą z nich:
+
+\begin{verbatim} 
+alert(Math.max(2, 4));
+\end{verbatim}
+    
+Tworzenie wartości przez funkcję nazywa się zwracaniem wartości. Ponieważ w języku JavaScript wartości są zawsze tworzone przez wyrażenia, wywołań funkcji można używać jako składników większych wyrażeń:
+
+\begin{verbatim} 
+alert(Math.min(2, 4) + 100);
+\end{verbatim}
+    
+Techniki tworzenia własnych funkcji są opisane w \hyperref[chap:3]{rozdziale 3}.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Jak pokazałem w poprzednich przykładach, za pomocą funkcji \texttt{alert} można wyświetlić wynik jakiegoś wyrażenia. Chociaż te okienka, które trzeba zamykać kliknięciem niejednego już doprowadziły do szewskiej pasji. Dlatego od tej pory będziemy używać podobnej funkcji, o nazwie \texttt{print}\index{print}, która nie wyświetla okna dialogowego, tylko drukuje wartość w polu wyjściowym konsoli. Funkcja \texttt{print} nie jest standardową funkcją JavaScript i nie jest normalnie obsługiwana przez przeglądarki, ale można jej używać na stronach tego podręcznika.
+
+\begin{verbatim} 
+print("N");
+// → N
+\end{verbatim}
+    
+Podobną funkcją również dostępną tylko na tych stronach jest \texttt{show}\index{show}. Funkcja \texttt{print} drukuje swój argument jako tekst, natomiast \texttt{show} próbuje zaprezentować go w taki sposób, jak wyglądałby w programie, dzięki czemu otrzymujemy więcej informacji na temat typu wartości. Na przykład wartości łańcuchowe przez funkcję \texttt{show} są wyświetlane wraz z cudzysłowami:
+
+\begin{verbatim} 
+show("N");
+// → "N"
+\end{verbatim}
+    
+W standardowym środowisku przeglądarek dostępnych jest jeszcze kilka innych funkcji wyświetlających wyskakujące okienka. Np. za pomocą funkcji \texttt{confirm}\index{confirm} można wyświetlić okno, w którym użytkownik musi kliknąć przycisk OK lub Anuluj jako odpowiedź na pytanie. Jeśli użytkownik kliknie przycisk OK, funkcja zwraca wartość \texttt{true}, a jeśli użytkownik kliknie przycisk Anuluj, funkcja zwraca wartość \texttt{false}.
+
+\begin{verbatim} 
+show(confirm("Możemy?"));
+\end{verbatim}
+    
+Funkcji \texttt{prompt}\index{prompt} można użyć, aby zadać pytanie otwarte. Pierwszy argument zawiera pytanie, a drugi tekst, który zostanie wstępnie wyświetlony w~polu tekstowym na odpowiedź. Gdy użytkownik wpisze jakiś tekst w oknie, funkcja zwróci go jako łańcuch.
+
+\begin{verbatim} 
+show(prompt("Powiedz nam wszystko, co wiesz.", "..."));
+\end{verbatim}
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Prawie każdej zmiennej w środowisku można nadać nową wartość. Bywa to przydatne, ale i niebezpieczne. Jeśli funkcji \texttt{print} przypisze się wartość \texttt{8}, to nie będzie można już nic przy jej użyciu wydrukować. Na szczęście w~konsoli znajduje się duży przycisk Reset przywracający środowisko do pierwotnego stanu.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Liniowe programy nie są zbyt interesujące. Gdy program zawiera więcej niż jedną instrukcję, instrukcje te, jak nietrudno się domyślić, są wykonywane po kolei zaczynając od góry.
+
+\begin{verbatim} 
+var liczba = Number(prompt("Wybierz liczbę", ""));
+print("Twoja liczba jest kwadratowym pierwiastkiem liczby " +
+      (liczba * liczba));
+\end{verbatim}
+    
+Funkcja \texttt{Number}\index{Number} konwertuje wartość na liczbę, co w tym przypadku było konieczne, ponieważ funkcja \texttt{prompt} zwraca łańcuch. Istnieją też funkcje o nazwach \texttt{String}\index{String} i \texttt{Boolean}\index{Boolean} zamieniające wartości odpowiednio na łańcuchy i~typ logiczny.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Spróbujmy napisać program drukujący wszystkie liczby parzyste z przedziału od 0 do 12. Oto jedna z możliwości:
+
+\begin{verbatim} 
+print(0);
+print(2);
+print(4);
+print(6);
+print(8);
+print(10);
+print(12);
+\end{verbatim}
+    
+To działa, ale programy pisze się po to, aby \emph{zmniejszyć} ilość pracy, a~nie sobie jej dodać. Gdybyśmy chcieli wyświetlić wszystkie parzyste liczby z~przedziału do 100, to powyższa metoda byłaby niesamowicie pracochłonna. Dlatego potrzebujemy jakiegoś sposobu na wielokrotne wykonywanie kodu.
+
+\begin{verbatim} 
+var biezacaLiczba = 0;
+while (biezacaLiczba <= 12) {
+  print(biezacaLiczba);
+  biezacaLiczba = biezacaLiczba + 2;
+}
+// → 0
+// → 2
+// ... itd.
+\end{verbatim}
+    
+Instrukcję \texttt{while}\index{while} mogłeś już zauważyć w rozdziale wstępnym. Instrukcja zaczynająca się od słowa \texttt{while} stanowi pętlę\index{pętla}. Pętla zaburza normalny tok wykonywania instrukcji, ponieważ może zmusić program do wykonania określonego zestawu instrukcji wielokrotnie. W tym przypadku za słowem \texttt{while} znajduje się wyrażenie w nawiasie (nawias ten jest tu obowiązkowy), które decyduje o tym, czy działanie pętli ma zostać zakończone, czy być kontynuowane. Dopóki wartością logiczną tego wyrażenia jest \texttt{true}, pętla powtarza wykonywanie zawartego w niej kodu. Gdy wartość wyrażenia logicznego zmieni się na false, następuje przejście na dół pętli i wykonywana jest dalsza część programu w normalny sposób.
+
+    
+Zmienna \texttt{biezacaLiczba} demonstruje, w jaki sposób za pomocą zmiennej można śledzić postęp wykonywania programu. W każdym powtórzeniu pętli wartość tej zmiennej jest zwiększana o \texttt{2} i na początku każdego powtórzenia wartość ta jest porównywana z liczbą \texttt{12}, w celu określenia, czy należy wykonać następne powtórzenie, czy nie.
+
+    
+Trzecią częścią instrukcji \texttt{while} jest inna instrukcja. Stanowi ona treść właściwą pętli\index{treść pętli}, czyli działanie lub działania, które mają zostać wykonane wielokrotnie. Gdybyśmy nie musieli drukować liczb, nasz program mógłby wyglądać tak:
+
+\begin{verbatim} 
+var biezacaLiczba = 0;
+while (biezacaLiczba <= 12)
+  biezacaLiczba = biezacaLiczba + 2;
+\end{verbatim}
+    
+W tym kodzie zasadniczą treść pętli stanowi instrukcja \texttt{biezacaLiczba = biezacaLiczba + 2;}. My musimy jednak wydrukować nasze liczby, a więc musimy użyć więcej niż jednej instrukcji. Do grupowania instrukcji w bloki służą klamry (\texttt{\{} i \texttt{\}})\index{\{\}}. Dla świata zewnętrznego blok\index{blok} jest pojedynczą instrukcją. We wcześniejszym przykładzie w bloku znajdują się wywołanie funkcji \texttt{print} i instrukcja zmieniająca wartość zmiennej \texttt{biezacaLiczba}.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+\section*{Ćwiczenie 2.2}
+\label{sec:2.2}
+    
+      
+Korzystając z poznanych technik napisz program obliczający i wyświetlający wynik działania $2^{10}$ (2 do potęgi 10). Oczywiście nie możesz stosować prymitywnych sztuczek w stylu \texttt{2 * 2 *...}
+
+      
+Jeśli masz problem z rozwiązaniem tego zadania, dokładnie przyjrzyj się przykładowi drukującemu liczby parzyste. Ten program musi wykonać pewne działanie określoną liczbę razy. Do jego budowy można użyć zmiennej licznikowej i pętli \texttt{while}. Zamiast drukować licznik program musi pomnożyć coś przez 2. Tym czymś powinna być inna zmienna, w której stopniowo gromadzony jest wynik.
+
+      
+Nie martw się, jeśli jeszcze to do Ciebie nie przemawia. Nawet gdy doskonale zrozumiesz wszystkie opisywane w tym zagadnienia, możesz mieć trudności z ich praktycznym wykorzystaniem. Umiejętność posługiwania się kodem przychodzi wraz z praktyką i dlatego przeanalizuj rozwiązanie, a potem spróbuj wykonać następne ćwiczenie.
+  
+[\hyperref[sol:2.2]{pokaż rozwiązanie}]
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+\section*{Ćwiczenie 2.3}
+\label{sec:2.3}
+      
+Wprowadzając drobne modyfikacje program napisany w poprzednim ćwiczeniu można wykorzystać do narysowania trójkąta. Pod pojęciem „narysować trójkąt” rozumiem oczywiście wydrukowanie tekstu w taki sposób, aby przypominał tę figurę geometryczną.
+
+      
+Wydrukujemy dziesięć linijek tekstu. W pierwszej będzie znajdować się tylko jeden znak \#. W drugiej linijce będą dwa takie znaki itd.
+
+      
+Jak sprawić, aby w linii zostało wydrukowanych X znaków \#? Jednym ze sposobów jest utworzenie w każdym powtórzeniu linii za pomocą wewnętrznej pętli — tzn. pętli znajdującej się w innej pętli. Jednak prościej będzie utworzyć łańcuch i w każdej iteracji dodawać do niego po jednym znaku.
+
+    
+[\hyperref[sol:2.3]{pokaż rozwiązanie}]
+    
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Zwróć uwagę na odstępy znajdujące się przed niektórymi instrukcjami. Nie są one wymagane, tzn. dla komputera nie ma różnicy czy one są, czy ich nie ma. W istocie nawet złamania wierszy w programach nie są obowiązkowe. Jeśli chcesz, cały program możesz napisać w jednym wierszu. Wcięcia\index{wcięcia} w blokach kodu mają za zadanie ukazać strukturę programu programiście czytającemu kod. Ponieważ w istniejących blokach można tworzyć kolejne bloki, czasami może być trudno zorientować się, gdzie każdy blok się rozpoczyna i kończy, zwłaszcza w skomplikowanych programach. Gdy zastosowane są wcięcia, program wizualnie odzwierciedla strukturę bloków, z których jest zbudowany. Ja dla każdego nowego bloku stosuję wcięcie na głębokość dwóch spacji, ale są różne gusta.
+
+    
+Pole w konsoli do wprowadzania kodu programów dodaje odstępy automatycznie. Początkowo może Cię to denerwować, ale gdy napiszesz większą ilość kodu, docenisz jak dużo czasu można dzięki temu zaoszczędzić. Naciskając klawisz Tab można zwiększyć wcięcie wiersza, w którym znajduje się kursor.
+
+    
+W pewnych szczególnych przypadkach w języku JavaScript dopuszczalne jest opuszczenie średnika na końcu instrukcji. W innych sytuacjach średnik koniecznie musi być użyty albo dzieją się dziwne rzeczy. Reguły dotyczące tego, kiedy można opuścić średnik są zawiłe i dziwaczne. W tym podręczniku nie opuściłem ani jednego średnika i zachęcam Cię, abyś robił tak samo.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Wszystkie przedstawione do tej pory przykłady użycia instrukcji \texttt{while} są zbudowane wg jednej zasady. Najpierw tworzona jest zmienna reprezentująca licznik. Za jej pomocą śledzony jest postęp wykonywania programu. Instrukcja \texttt{while} sama zawiera test, który najczęściej polega na sprawdzeniu, czy licznik osiągnął określoną wartość. Następnie na końcu właściwej treści pętli następuje zwiększenie wartości licznika.
+
+    
+W ten sposób można napisać wiele różnych pętli. Dlatego w języku JavaScript, i wielu innych językach, dostępna jest nieco bardziej zwięzła postać pętli:
+
+\begin{verbatim} 
+for (var liczba = 0; liczba <= 12; liczba = liczba + 2)
+  show(liczba);
+// → 0
+// → 2
+// ... itd.
+\end{verbatim}
+    
+Ten program zwróci dokładnie taki sam wynik, jak pokazany wcześniej program drukujący liczby parzyste. Jedyna różnica między tymi dwiema pętlami polega na tym, że w tym przypadku wszystkie instrukcje dotyczące „stanu” pętli znajdują się w jednym wierszu. W nawiasie znajdującym się za słowem \texttt{for}\index{for} powinny znajdować się dwa średniki. Kod znajdujący się przed pierwszym średnikiem \emph{inicjuje} pętlę i zazwyczaj zawiera definicję zmiennej. Druga część jest wyrażeniem \emph{sprawdzającym}, czy wykonywanie pętli powinno być kontynuowane. Ostatnia część \emph{aktualizuje} stan pętli. W większości przypadków ten rodzaj pętli jest bardziej zwięzły i prostszy od konstrukcji \texttt{while}.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+W nazwach niektórych zmiennych można zauważyć dziwny sposób użycia wielkich liter\index{wielkie litery}. Przypomnę, że nazwy zmiennych nie mogą zawierać spacji, ponieważ komputer traktowałby je jako kilka oddzielnych słów, i dlatego nazwy składające się z kilku słów trzeba zapisywać na różne inne sposoby: \texttt{malyfiglarnykonik}, \texttt{maly\_figlarny\_konik}, \texttt{MałyFiglarnyKonik} lub \texttt{malyFiglarnyKonik}. Pierwsza wersja jest trudna do odczytania. Podoba mi się wersja ze znakami podkreślenia, ale ich wpisywanie jest kłopotliwe. Nazwy standardowych funkcji języka JavaScript są pisane przy użyciu ostatniej metody, z której korzysta też wielu programistów. Nietrudno jest się do tego przyzwyczaić i dlatego będę postępował jak inni, czyli będą zapisywał z wielkiej litery wszystkie słowa w nazwach oprócz pierwszego.
+
+    
+Istnieje też kilka przypadków, jak nazwa funkcji \texttt{Number}, w których wielka jest też litera pierwszego słowa. Umownie oznacza to, że funkcja ta jest konstruktorem. Czym są konstruktory dowiesz się w \hyperref[chap:8]{rozdziale 8}. Na razie po prostu ignoruj ten pozorny brak konsekwencji.
+
+    
+Pamiętaj też, że niektóre słowa, np. \texttt{var}, \texttt{while} i \texttt{for}, mają w języku specjalne znaczenie i nie można ich używać do nazywania zmiennych. Są to tzw. słowa kluczowe\index{słowa kluczowe}. Istnieje też grupa słów zarezerwowanych\index{słowa zarezerwowane} do użytku przez JavaScript w przyszłości. Oficjalnie ich również nie można używać jako nazw zmiennych, chociaż niektóre przeglądarki tego nie przestrzegają. Oto lista wszystkich słów tego rodzaju:
+
+\begin{verbatim} 
+abstract boolean break byte case catch char class const continue
+debugger default delete do double else enum export extends false
+final finally float for function goto if implements import in
+instanceof int interface long native new null package private
+protected public return short static super switch synchronized
+this throw throws transient true try typeof var void volatile
+while with
+\end{verbatim}
+    
+Nie męcz się, aby je wszystkie od razu zapamiętać. Wystarczy że sobie o nich przypomnisz, gdy Twój program nie będzie działał zgodnie z Twoimi oczekiwaniami. Z mojego doświadczenia wynika, że najczęściej używanymi niedozwolonymi nazwami są słowa \texttt{char} (do przechowywania pojedynczego znaku) i \texttt{class}\index{class}.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+\section*{Ćwiczenie 2.4}
+\label{sec:2.4}
+    
+      
+Przepisz poprzednie przykłady użycia pętli \texttt{while} przy użyciu pętli \texttt{for}.
+
+    
+ [\hyperref[sol:2.4]{pokaż rozwiązanie}]
+    
+    
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+\index{+=}\index{$-$=}\index{/=}\index{*=}W programach często zmienia się wartości zmiennych na wartości będące modyfikacją ich poprzednich wartości. Na przykład \texttt{licznik = licznik + 1}. W języku JavaScript istnieje możliwość wyrażenia tego w skrócony sposób: \texttt{licznik += 1}. Technikę te można stosować także z wieloma innymi operatorami, np. \texttt{wynik *= 2} podwaja wartość zmiennej \texttt{wynik}, a \texttt{licznik -= 1} zmniejsza wartość licznika.
+
+    
+\index{++}\index{$--$}Konstrukcje \texttt{licznik += 1} i \texttt{licznik -= 1} można nawet zapisać jeszcze krócej: \texttt{licznik++} i \texttt{licznik-{}-}.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Mówi się, że pętle zmieniają przepływ sterowania\index{przepływ sterowania} w programie. Zmieniają kolejność wykonywania instrukcji. W wielu przypadkach potrzebna jest też zmiana przepływu w inny sposób: poprzez pomijanie instrukcji.
+
+    
+Wyobraź sobie, że chcesz wyświetlić wszystkie liczby mniejsze od 20, które są podzielne zarówno przez 3, jak i 4.
+
+\begin{verbatim} 
+for (var licznik = 0; licznik < 20; licznik++) {
+  if (licznik % 3 == 0 && licznik % 4 == 0)
+    show(licznik);
+}
+// → 0
+// → 12
+\end{verbatim}
+    
+Słowo kluczowe \texttt{if}\index{if} działa bardzo podobnie do słowa \texttt{while}: Sprawdza warunek podany w nawiasie i podejmuje decyzję czy wykonać instrukcję w~zależności od wartości tego warunku. Robi to jednak tylko raz, a więc instrukcja może zostać wykonana zero razy lub jeden raz.
+
+    
+Sztuczka z operatorem reszty z dzielenia (\texttt{\%})\index{\%} pozwala w łatwy sposób sprawdzić czy jedna liczba dzieli się bez reszty przez inną. Jeśli tak, to reszta z dzielenia zwrócona przez ten operator wynosi zero.
+
+    
+Gdybyśmy chcieli wyświetlić wszystkie liczby z przedziału do 20, a niepodzielne przez 4 umieścić w nawiasach, moglibyśmy napisać taki kod:
+
+\begin{verbatim} 
+for (var licznik = 0; licznik < 20; licznik++) {
+  if (licznik % 4 == 0)
+    print(licznik);
+  if (licznik % 4 != 0)
+    print("(" + licznik + ")");
+}
+// → 0
+// → (1)
+// ...
+// → 4
+// ... itd.
+\end{verbatim}
+    
+Teraz jednak program musi sprawdzić czy wartość zmiennej \texttt{licznik} jest podzielna przez \texttt{4} dwa razy. Ten sam efekt można uzyskać dodając instrukcję \texttt{else} za instrukcją \texttt{if}. Instrukcja \texttt{else}\index{else} jest wykonywana tylko wtedy, gdy wartość warunku instrukcji \texttt{if} jest fałszywa.
+
+\begin{verbatim} 
+for (var licznik = 0; licznik < 20; licznik++) {
+  if (licznik % 4 == 0)
+    print(licznik);
+  else
+    print("(" + licznik + ")");
+}
+// → 0
+// → (1)
+// ...
+// → 4
+// ... itd.
+\end{verbatim}
+    
+Ten przykład jest banalny, ale możemy go trochę skomplikować. Spróbujemy wydrukować te same liczby, ale po każdej większej od 15 dodamy dwie gwiazdki, po każdej większej od 10 i mniejszej od 15 dodamy po jednej gwiazdce, a do pozostałych nic nie będziemy dodawać.
+
+\begin{verbatim} 
+for (var licznik = 0; licznik < 20; licznik++) {
+  if (licznik > 15)
+    print(licznik + "**");
+  else if (licznik > 10)
+    print(licznik + "*");
+  else
+    print(licznik);
+}
+// → 0
+// ...
+// → 11*
+// ...
+// → 16**
+// ...
+// → 19**
+\end{verbatim}
+    
+Jak widać w powyższym kodzie, instrukcje \texttt{if} można łączyć w łańcuchy. ten program najpierw sprawdza czy wartość zmiennej \texttt{licznik} jest większa od \texttt{15}. Jeśli tak, następuje wydruk dwóch gwiazdek, a pozostałe testy są pomijane. Jeśli nie, program sprawdza czy wartość zmiennej \texttt{licznik} jest większa od \texttt{10}. Jeśli wartość zmiennej \texttt{licznik} nie jest większa od \texttt{10}, następuje wykonanie ostatniej instrukcji \texttt{print}.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+\section*{Ćwiczenie 2.5}
+\label{sec:2.5}
+    
+      
+Napisz program pytający za pomocą instrukcji \texttt{prompt}, ile wynosi 2 + 2. Jeśli zostanie udzielona odpowiedź 4, wyświetl jakąś pochwalę przy użyciu instrukcji \texttt{alert}. Jeśli zostanie wpisana liczba 3 albo 5, wyświetl napis „Prawie!”. W~pozostałych przypadkach wydrukuj coś nieprzyjemnego.
+
+    
+[\hyperref[sol:2.5]{pokaż rozwiązanie}]
+    
+    
+  
+  \begin{center}
+• • • • •
+\end{center}
+  
+    
+Jeśli nie ma potrzeby, aby wszystkie instrukcje pętli były wykonywane do samego końca, można posłużyć się słowem kluczowym \texttt{break}\index{break}. Powoduje ono natychmiastowe wyjście z bieżącej pętli i kontynuowanie wykonywania programu za nią. Ten program znajduje pierwszą liczbę większą od 20 i podzielną przez 7:
+
+\begin{verbatim} 
+for (var biezaca = 20; ; biezaca++) {
+  if (biezaca % 7 == 0)
+    break;
+}
+print(biezaca);
+// → 21
+\end{verbatim}
+    
+W powyższej instrukcji \texttt{for} brakuje warunku pozwalającego zakończyć jej działanie. Z tego powodu zakończenie wykonywania tej pętli może nastąpić wyłącznie dzięki instrukcji \texttt{break}. Ten sam program można by było również zapisać tak:
+
+\begin{verbatim} 
+for (var biezaca = 20; biezaca % 7 != 0; biezaca++)
+  ;
+print(biezaca);
+// → 21
+\end{verbatim}
+    
+W tym przypadku treść pętli jest pusta. Za pomocą samego średnika można utworzyć pustą instrukcję. Jedynym skutkiem działania tej pętli jest zwiększenie wartości zmiennej \texttt{biezaca} do żądanego poziomu. Potrzebny był mi jednak też przykład z użyciem instrukcji \texttt{break}, a więc dobrze przyjrzyj się też poprzedniej wersji.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+\section*{Ćwiczenie 2.6}
+\label{sec:2.6}
+    
+      
+Do rozwiązania poprzedniego ćwiczenia dodaj instrukcję \texttt{while} i ewentualnie \texttt{break}, aby pytanie było wyświetlane, aż w końcu zostanie podana prawidłowa odpowiedź.
+
+      
+Pętlę, która nigdy nie zakończy działania sama można utworzyć pisząc \texttt{while (true) ...}. Może się to wydawać trochę głupie, że nakazujemy programowi wykonywać instrukcje dopóki \texttt{true} jest \texttt{true}, ale to naprawdę bardzo przydatna sztuczka.
+
+    
+[\hyperref[sol:2.6]{pokaż rozwiązanie}]
+    
+    
+\begin{center}
+• • • • •
+\end{center}
+
+
+W rozwiązaniu poprzedniego ćwiczenia znalazła się instrukcja \texttt{var odpowiedz;}. Tworzy ona zmienną o nazwie \texttt{odpowiedz}, ale nie nadaje jej żadnej wartości. Co się stanie, gdy spróbujemy użyć wartości tej zmiennej?
+
+\begin{verbatim} 
+var tajemniczaZmienna;
+show(tajemniczaZmienna);
+// → undefined
+\end{verbatim}
+    
+Posługując się metaforą przyssawek, można powiedzieć, że ta zmienna nie jest do niczego przyssana. Gdy spróbujesz użyć wartości pustego miejsca, otrzymasz specjalną wartość o nazwie \texttt{undefined}\index{undefined}. Także funkcje nie zwracające żadnej sensownej wartości, takie jak np. \texttt{print} i \texttt{alert}, zwracają wartość \texttt{undefined}.
+
+\begin{verbatim} 
+show(alert("Jestem skutkiem ubocznym."));
+\end{verbatim}
+
+    
+Istnieje też podobna wartość \texttt{null}\index{null}, która oznacza, że „dana zmienna jest zdefiniowana, ale nie ma żadnej wartości”. Różnica znaczenia między wartościami \texttt{undefined} i \texttt{null} ma przede wszystkim znaczenie naukowe i nie jest zbyt ciekawa. W praktyce zwykle sprawdza się, czy coś „ma wartość”. W takich przypadkach można używać wyrażeń typu \texttt{cokolwiek == undefined}, ponieważ, mimo że wartości te nie są tym samym, wyrażenie \texttt{null == undefined} ma wartość \texttt{true}.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+To prowadzi nas do kolejnego ciekawego tematu…
+
+\begin{verbatim} 
+show(false == 0);
+// → true
+show("" == 0);
+// → true
+show("5" == 5);
+// → true
+\end{verbatim}
+    
+\index{konwersja typów}Wszystkie te instrukcje zwracają wartość \texttt{true}. Do porównywania wartości różnych typów JavaScript stosuje skomplikowane i niejasne reguły. Nie będę nawet próbował ich dokładnie wyjaśnić, ale najprościej można powiedzieć, że zazwyczaj próbuje przekonwertować jedną z wartości na typ drugiej. Jeśli jednak z którejś strony wystąpi wartość \texttt{null} lub \texttt{undefined}, wartość \texttt{true} jest zwracana tylko wtedy, gdy z obu stron znajduje się \texttt{null} lub \texttt{undefined}.
+
+    
+Jak w takim razie sprawdzić, czy wybrana zmienna odnosi się do wartości \texttt{false}? Zgodnie z regułami konwersji łańcuchów i liczb na wartości logiczne \texttt{0} i pusty łańcuch są traktowane jako \texttt{false}, natomiast wszystkie pozostałe wartości oznaczają \texttt{true}. Z tego względu wartością wyrażenia \texttt{zmienna == false} jest \texttt{true}, gdy \texttt{zmienna} odwołuje się do \texttt{0} lub \texttt{""}. Jeśli \emph{nie} chcesz, aby ta automatyczna konwersja typów była wykonywana, możesz użyć jednego z dwóch dodatkowych operatorów: \texttt{===}\index{===} i \texttt{!==}\index{!==}. Pierwszy sprawdza czy dana wartość jest identyczna z drugą, natomiast drugi — czy dana wartość jest dokładnie różna od drugiej.
+
+\begin{verbatim} 
+show(null === undefined);
+// → false
+show(false === 0);
+// → false
+show("" === 0);
+// → false
+show("5" === 5);
+// → false
+\end{verbatim}
+    
+Wszystkie te instrukcje zwrócą wartość \texttt{false}.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Wartości używane w warunkach w instrukcjach \texttt{if}, \texttt{while} oraz \texttt{for} nie muszą być logiczne. Przed sprawdzeniem zostaną automatycznie przekonwertowane na ten typ. Oznacza to, że liczba \texttt{0}, pusty łańcuch \texttt{""}, \texttt{null}, \texttt{undefined} i oczywiście \texttt{false} zostaną potraktowane jako fałsz.
+
+    
+Wykorzystując fakt, że wszystkie pozostałe wartości zostaną zamienione na wartość \texttt{true} w wielu przypadkach można opuścić bezpośrednie porównywanie. Jeśli wiadomo, że zmienna może zawierać tylko albo łańcuch albo wartość \texttt{null}, można ją bardzo łatwo testować…
+
+\begin{verbatim} 
+var mozeNull = null;
+// …tajemniczy kod, który może zapisać łańcuch w zmiennej mozeNull…
+if (mozeNull)
+  print("Zmienna mozeNull ma wartość");
+\end{verbatim}
+    
+Wyjątkiem jest sytuacja, w której tajemniczy kod przypisze zmiennej \texttt{mozeNull} wartość \texttt{""}. Pusty łańcuch jest równoznaczny z fałszem, a więc w tym przypadku nic nie zostanie wydrukowane. W niektórych przypadkach może to być \emph{błąd}. Tego subtelnego błędu można uniknąć używając porównania \texttt{=== null} lub \texttt{=== false}. To samo dotyczy wartości liczbowych, które mogą wynosić \texttt{0}.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Wiersz zawierający opis tajemniczego kodu w powyższym przykładzie może wydać Ci się trochę podejrzany. Dodatkowe objaśnienia w kodzie programów są często bardzo przydatne. Zazwyczaj stosuje się je, aby wyjaśnić ludzkim językiem, co robi dany fragment programu.
+
+\begin{verbatim} 
+// Licznik zmiennej, którego definicja znajduje się poniżej, będzie miał
+// wartość początkową 0, czyli zero.
+var licznik = 0;
+// Teraz rozpoczynamy pętlę, więc dobrze się trzymaj.
+while (licznik < 100 /* Licznik ma wartość mniejszą od stu */)
+/* W każdym powtórzeniu pętli ZWIĘKSZAMY wartość licznika
+   Dodajemy do niej jeden */
+  licznik++;
+// Koniec.
+\end{verbatim}
+    
+Tego rodzaju teksty nazywają się komentarzami\index{komentarze}. Oto reguły ich stosowania: ciąg \texttt{/*} stanowi początek komentarza, który kończy się ciągiem \texttt{*/}. Ciąg \texttt{//} również oznacza początek komentarza, ale jego koniec wyznacza koniec wiersza.
+
+    
+Jak widać, dzięki komentarzom można sprawić, że nawet najprostszy program będzie wyglądał jakby był duży, brzydki i niesamowicie skomplikowany.
+
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+Są jeszcze inne sytuacje, w których może dojść do automatycznej konwersji typów\index{konwersja typów}. Gdy do łańcucha doda się wartość niebędącą łańcuchem, wartość ta przed dołączeniem zostanie przekształcona w łańcuch. Jeśli pomnożymy liczbę przez łańcuch, JavaScript spróbuje przed wykonaniem działania zamienić ten łańcuch na liczbę.
+
+\begin{verbatim} 
+show("Apollo" + 5);
+// → "Apollo5"
+show(null + "ify");
+// → "nullify"
+show("5" * 5);
+// → 25
+show("truskawka" * 5);
+// → NaN
+\end{verbatim}
+    
+Ostatnia instrukcja spowodowała wydrukowanie napisu \texttt{NaN}\index{NaN}, który oznacza specjalną wartość. Jest to skrót od angielskich słów „Not a Number” (nie liczba) i co ciekawe, jest to typ liczbowy. W tym przypadku dowiadujemy się, że truskawka nie jest liczbą. Wynikiem wszystkich działań arytmetycznych na wartości \texttt{NaN} jest \texttt{NaN} i dlatego właśnie w wyniku mnożenia przez \texttt{5} otrzymaliśmy \texttt{NaN}. Ponadto zapewne zaskoczy Cię fakt, że wynikiem porównania \texttt{NaN == NaN} jest \texttt{false}. Do sprawdzania czy dana wartość jest \texttt{NaN} można używać funkcji \texttt{isNaN}\index{isNaN}. \texttt{NaN} to kolejna (i już ostatnia) wartość, która w~wyniku konwersji na typ logiczny zamienia się w \texttt{false}.
+
+    
+Te automatyczne konwersje bywają naprawdę wygodne, ale zasady ich wykonywania są dziwaczne i stanowią źródło wielu błędów. Mimo że \texttt{+} i \texttt{*} to operatory arytmetyczne, w tym przykładzie oba zachowują się całkiem inaczej. We własnych programach często używam operatora \texttt{+} do łączenia łańcuchów i „niełańcuchów”, ale operatora \texttt{*} i innych operatorów arytmetycznych lepiej na łańcuchach nie używać. Konwersja liczby na łańcuch zawsze jest możliwa i łatwa, natomiast zamiana łańcucha w liczbę może się nie udać (tak jak w ostatnim wierszu kodu w przytoczonym przykładzie). Aby jawnie przekonwertować łańcuch na liczbę, można użyć funkcji \texttt{Number} i wówczas oświadczamy, że jesteśmy świadomi ryzyka otrzymania wartości \texttt{NaN}.
+
+\begin{verbatim} 
+show(Number("5") * 5);
+// → 25
+\end{verbatim}
+  
+\begin{center}
+• • • • •
+\end{center}
+  
+    
+W części poświęconej operatorom logicznym \texttt{\&\&} i \texttt{||}\index{||} napisałem, że operatory te tworzą wartości logiczne. Muszę przyznać, że to było uproszczenie. Jeśli zastosuje się je do wartości logicznych, to rzeczywiście zwrócą wartość logiczną. Ale można je stosować także do innych typów danych i wówczas zwracają jeden ze swoich argumentów.
+
+    
+Operator \texttt{||} tak naprawdę najpierw sprawdza wartość znajdującą się po jego lewej stronie. Jeśli w wyniku konwersji tej wartości na typ logiczny otrzyma \texttt{true}, zwraca tę wartość znajdującą się po jego lewej stronie. W~przeciwnym przypadku zwraca wartość znajdującą się po prawej. Możesz to sam sprawdzić. Dlaczego tak jest? Jest to przydatne w praktyce. Rozważmy poniższy przykład:
+
+\begin{verbatim} 
+var input = prompt("Jak się nazywasz?", "Kilgore Trout");
+print("No to cześć, " + (input || "żabko"));
+\end{verbatim}
+    
+Jeśli użytkownik naciśnie przycisk Anuluj albo zamknie okno dialogowe \texttt{prompt} w jakiś inny sposób bez podawania swojego nazwiska, zmienna \texttt{input} będzie miała wartość \texttt{null} lub \texttt{""}. Obie te wartości po przekonwertowaniu na typ logiczny dałyby \texttt{false}. Wyrażenie \texttt{input || "żabko"} można w~tym przypadku przeczytać następująco: „wartość zmiennej \texttt{input} lub łańcuch \texttt{"żabko"}”. Jest to łatwy sposób na zdefiniowanie wartości „awaryjnej”.
+
+    
+Operator \texttt{\&\&}\index{\&\&} działa wg podobnych zasad, tylko odwrotnie. Gdy po jego lewej stronie znajduje się wartość dająca \texttt{false} po konwersji na typ logiczny, zwraca tę wartość. W przeciwnym przypadku zwraca wartość znajdującą się po prawej.
+
+    
+Kolejną ciekawą właściwością tych operatorów jest to, że wyrażenie znajdujące się po prawej stronie jest obliczane tylko wtedy, gdy jest to konieczne. W przypadku \texttt{true || X} nie ma znaczenia, jaka jest wartość \texttt{X}, ponieważ wynik zawsze będzie \texttt{true}, a więc wartość \texttt{X} nigdy nie będzie obliczana. A~jeśli to wyrażenie miałoby jakieś skutki uboczne, to nigdy byśmy ich nie zaobserwowali. To samo dotyczy wyrażenia \texttt{false \&\& X}.
+
+\begin{verbatim} 
+false || alert("Niech się dzieje!");
+true || alert("Nic się nie dzieje.");
+\end{verbatim}

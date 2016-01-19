@@ -1,0 +1,1741 @@
+\chapter{Programowanie obiektowe}
+\label{chap:8}
+
+Na początku lat 90. w branży programistycznej powstało zamieszanie spowodowane programowaniem obiektowym\index{programowanie obiektowe}. Większość zasad tej techniki nie była żadną nowością, ale osiągnęła ona na tyle dużą popularność, że w końcu nabrała pędu i zaczęła robić się modna. Pisano książki na jej temat, przeprowadzano kursy oraz tworzono nowe obiektowe języki programowania. Nagle wszyscy zaczęli wychwalać pod niebiosa zalety obiektowości i z entuzjazmem używać jej do rozwiązywania wszystkich możliwych problemów. Wyglądało to tak, jakby niektórzy byli przekonani, że w końcu odkryli \emph{prawidłowy sposób pisania programów}.
+
+  
+Jest to dość typowe... Gdy coś jest bardzo skomplikowane, ludzie zawsze szukają jakiegoś magicznego rozwiązania. I gdy pojawi się cos, co tak wygląda, od razu zyskuje potężną rzeszę oddanych wielbicieli. Do dziś dla wielu programistów obiektowość (albo ich wyobrażenie obiektowości) jest świętością. Dla nich program, który nie jest „prawdziwie obiektowy” (cokolwiek to znaczy), to słaby program. 
+
+  
+Niemniej jednak niewiele jest przejściowych mód, które przetrwałyby tak długo. Sukces obiektowości można w dużym stopniu tłumaczyć tym, że jest oparta na solidnych podstawach. W tym rozdziale znajduje się opis właśnie tych podwalin obiektowości oraz ich adaptacja w JavaScripcie. Chcę też podkreślić, że w poprzednich akapitach nie chciałem zdyskredytować obiektowości jako takiej. Moją intencją było tylko ostrzec Cię przed nadmiernym przywiązywaniem się do tej metodologii programowania.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Jak nazwa wskazuje, \textbf{programowanie obiektowe} polega na używaniu obiektów. Do tej pory używaliśmy ich do luźnego grupowania wartości, dodając i usuwając z nich dane, gdy tak się nam podobało. W programowaniu obiektowym obiekty są traktowane jak małe samodzielne światy, a~świat zewnętrzny może się z nimi kontaktować tylko poprzez niewielki ściśle zdefiniowany interfejs\index{interfejs}, będący zestawem metod i własności. Przykładem tego jest lista osiągniętych celów, której używaliśmy na końcu \hyperref[chap:7]{rozdziału 7}. Do posługiwania się nią używaliśmy tylko trzech funkcji: \texttt{makeReachedList}, \texttt{storeReached} oraz \texttt{findReached}. Te trzy funkcje stanowią interfejs tego typu obiektów.
+
+  
+To samo dotyczy obiektów \texttt{Date}, \texttt{Error} i \texttt{BinaryHeap}. Zamiast zwykłych funkcji do pracy z obiektami, do dyspozycji mamy słowo kluczowe \texttt{new} do tworzenia obiektów, które wraz z pewną liczbą metod i własności stanowi ich interfejs.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Jednym ze sposobów na dodanie metod do obiektów jest po prostu dołączenie do nich funkcji.
+
+  
+\begin{verbatim} 
+var rabbit = {};
+rabbit.speak = function(line) {
+  print("Królik powiedział „", line, "”");
+};
+
+rabbit.speak("Teraz Ty pytasz mnie.");
+// → Królik powiedział „Teraz Ty pytasz mnie.”
+\end{verbatim}
+  
+W większości przypadków \textbf{metoda} musi wiedzieć, \emph{na czym} ma działać. Na przykład, jeśli byłoby kilka królików, metoda \texttt{speak} musiałaby wskazywać, który królik ma mówić. Do tego służy specjalna zmienna o nazwie \texttt{this}\index{this}, która jest zawsze dostępna w wywołaniu funkcji, a jeśli funkcja jest wywoływana jako metoda, wskazuje odpowiedni obiekt. Funkcja nazywa się metodą, gdy należy do obiektu i jest z niego wywoływana, np. \texttt{object.method()}.
+
+  
+\begin{verbatim} 
+function speak(line) {
+  print("Pewien ", this.adjective, " królik mówi „", line, "”");
+}
+var whiteRabbit = {adjective: "biały", speak: speak};
+var fatRabbit = {adjective: "gruby", speak: speak};
+
+whiteRabbit.speak("Na moje uszy i wąsy, która to już godzina!");
+// → Pewien biały królik mówi „Na moje uszy i wąsy, która to już godzina!”
+fatRabbit.speak("Nie pogardziłbym jakąś małą marchewką.");
+// → Pewien gruby królik mówi „Nie pogardziłbym jakąś małą marchewką.”
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Teraz mogę wyjaśnić do czego służy ten tajemniczy pierwszy argument metody \texttt{apply}\index{apply}, któremu zawsze przypisywaliśmy wartość \texttt{null} w \hyperref[chap:6]{rozdziale 6}. Przy jego użyciu można określić obiekt, do którego ma zostać zastosowana funkcja. W przypadku funkcji niebędących metodami argument ten jest niepotrzebny i dlatego nadawaliśmy mu wartość \texttt{null}.
+
+  
+\begin{verbatim} 
+speak.apply(fatRabbit, ["Pycha."]);
+// → Pewien gruby królik mówi „Pycha.”
+\end{verbatim}
+  
+Funkcje również mają metodę \texttt{call}\index{call}, która jest podobna do \texttt{apply}, ale przyjmuje argumenty dla funkcji oddzielnie, zamiast w tablicy:
+
+  
+\begin{verbatim} 
+speak.call(fatRabbit, "Burp.");
+// → Pewien gruby królik mówi „Burp.”
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Słowo kluczowe \texttt{new}\index{new} umożliwia tworzenie obiektów w wygodny sposób. Gdy przed wywołaniem funkcji wstawi się słowo kluczowe \texttt{new}, jej zmienna \texttt{this}\index{this} wskaże na \emph{nowy} obiekt, który funkcja automatycznie zwróci (chyba że celowo ma ustawione, aby zwracać coś innego). Funkcje służące do tworzenia nowych obiektów nazywają się konstruktorami\index{konstruktor}. Poniżej znajduje się konstruktor królików:
+
+  
+\begin{verbatim} 
+function Rabbit(adjective) {
+  this.adjective = adjective;
+  this.speak = function(line) {
+    print("Pewien ", this.adjective, " królik mówi „", line, "”");
+  };
+}
+
+var killerRabbit = new Rabbit("zabójczy");
+killerRabbit.speak("KRAAAAAAAAACH!");
+// → Pewien zabójczy królik mówi „KRAAAAAAAAACH!”
+\end{verbatim}
+  
+W programowaniu JavaScript istnieje konwencja, zgodnie z którą nazwy konstruktorów rozpoczyna się wielką literą. Dzięki temu łatwo się je odróżnia od innych funkcji.
+
+  
+Czy słowo kluczowe \texttt{new} jest tak naprawdę potrzebne? Przecież równie dobrze można by było pisać tak:
+
+  
+\begin{verbatim} 
+function makeRabbit(adjective) {
+  return {
+    adjective: adjective,
+    speak: function(line) {/*itd.*/}
+  };
+}
+
+var blackRabbit = makeRabbit("czarny");
+\end{verbatim}
+  
+To nie jest dokładnie to samo. Słowo kluczowe \texttt{new} wykonuje jeszcze kilka dodatkowych działań, tylko tego nie widać. Nasz obiekt \texttt{killerRabbit} ma własność o nazwie \texttt{constructor}\index{constructor} wskazującą funkcję \texttt{Rabbit}, która go utworzyła. Obiekt \texttt{blackRabbit} również ma taką własność, ale wskazującą funkcję \texttt{Object}\index{Object}.
+
+  
+\begin{verbatim} 
+show(killerRabbit.constructor);
+// → <function Rabbit(adjective)>
+show(blackRabbit.constructor);
+// → <function Object()>
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Skąd się wzięła własność \texttt{constructor}? Jest ona częścią prototypu\index{prototyp} królika. \textbf{Prototypy} są potężną, choć trochę zawiłą, częścią systemu obiektowego języka JavaScript. Każdy obiekt bazuje na jakimś prototypie, z którego dziedziczy różne własności. Proste obiekty, których używaliśmy do tej pory bazują na podstawowym prototypie, który jest związany z konstruktorem \texttt{Object}. W istocie wyrażenie \texttt{\{\}} jest równoważne z \texttt{new Object()}.
+
+  
+\begin{verbatim} 
+var simpleObject = {};
+show(simpleObject.constructor);
+// → <function Object()>
+show(simpleObject.toString);
+// → <function toString()>
+ \end{verbatim}
+  
+Metoda \texttt{toString}\index{toString} należy do prototypu \texttt{Object}. Oznacza to, że wszystkie proste obiekty mają metodę \texttt{toString}, która konwertuje je na łańcuch. Nasze obiekty królików są utworzone na bazie prototypu związanego z konstruktorem \texttt{Rabbit}. Za pomocą własności \texttt{prototype} konstruktora można nawet uzyskać dostęp do ich prototypu:
+
+  
+\begin{verbatim} 
+show(Rabbit.prototype);
+// → {properties: <function ()>}
+show(Rabbit.prototype.constructor);
+// → <function Rabbit(adjective)>
+\end{verbatim}
+  
+Każdej funkcji automatycznie przypisywana jest własność \texttt{prototype}, której własność \texttt{constructor} wskazuje na tę funkcję. Ponieważ prototyp królika sam jest obiektem, bazuje na prototypie \texttt{Object} i ma jego metodę \texttt{toString}.
+
+  
+\begin{verbatim} 
+show(killerRabbit.toString == simpleObject.toString);
+// → true
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Obiekty dziedziczą własności swoich prototypów, ale dziedziczenie to jest tylko jednostronne. Własności prototypu mają wpływ na obiekt utworzony na bazie tego prototypu, ale własności tego obiektu nie mają wpływu na prototyp.
+
+  
+Ściśle rzecz biorąc reguła ta brzmi następująco: szukając własności JavaScript najpierw przeszukuje zestaw własności \emph{samego} obiektu. Jeśli własność o szukanej nazwie zostanie znaleziona, to zostanie użyta. Jeśli własność nie zostanie znaleziona, przeszukiwany jest prototyp obiektu, następnie prototyp prototypu itd. Jeśli nic nie zostanie znalezione, zostaje zwrócona wartość \texttt{undefined}. Z drugiej strony, gdy \emph{ustawiana} jest wartość własności, JavaScript nigdy nie przechodzi do prototypu, lecz zawsze ustawia własność w samym obiekcie.
+
+  
+\begin{verbatim} 
+Rabbit.prototype.teeth = "małe";
+show(killerRabbit.teeth);
+// → "małe"
+killerRabbit.teeth = "długie, ostre i zakrwawione";
+show(killerRabbit.teeth);
+// → "długie, ostre i zakrwawione"
+show(Rabbit.prototype.teeth);
+// → "małe"
+\end{verbatim}
+  
+Oznacza to, że za pomocą prototypu można w dowolnej chwili dodać nowe własności i metody do wszystkich bazujących na nim obiektów. Na przykład w trakcie pracy może się okazać, że nasze króliki muszą umieć tańczyć.
+
+  
+\begin{verbatim} 
+Rabbit.prototype.dance = function() {
+  print("Pewien ", this.adjective, " królik tańczy gigę.");
+};
+
+killerRabbit.dance();
+// → Pewien zabójczy królik tańczy gigę.
+\end{verbatim}
+  
+Jak się pewnie domyślasz, prototyp królika jest doskonałym miejscem na dodawanie wartości wspólnych dla wszystkich królików, takich jak metoda \texttt{speak}. Oto nowa wersja konstruktora \texttt{Rabbit}:
+
+  
+\begin{verbatim} 
+function Rabbit(adjective) {
+  this.adjective = adjective;
+}
+Rabbit.prototype.speak = function(line) {
+  print("Pewien ", this.adjective, " królik mówi „", line, "”");
+};
+
+var hazelRabbit = new Rabbit("brązowy");
+hazelRabbit.speak("Dobry Frith!");
+// → Pewien brązowy królik mówi „Dobry Frith!”
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Fakt, że wszystkie obiekty mają prototypy i mogą po nich dziedziczyć różne własności może sprawiać problemy. Oznacza to, że użycie obiektu do przechowywania zbioru wartości, jak w przypadku kotów w \hyperref[chap:4]{rozdziale 4}, może się nie udać. Gdybyśmy np. chcieli sprawdzić czy istnieje kot o imieniu \texttt{constructor}, napisalibyśmy taki kod:
+
+  
+\begin{verbatim} 
+var noCatsAtAll = {};
+if ("constructor" in noCatsAtAll)
+  print("Tak, niewątpliwie istnieje kot o imieniu „constructor”.");
+// → Tak, niewątpliwie istnieje kot o imieniu „constructor”.
+\end{verbatim}
+  
+Mamy problem. Dodatkowe trudności może sprawiać fakt, że standardowe prototypy, takie jak \texttt{Object} i \texttt{Array}, często  rozszerza się o nowe przydatne funkcje. Na przykład moglibyśmy wszystkim obiektom dodać metodę o nazwie \texttt{properties} zwracającą tablicę nazw wszystkich nieukrytych własności obiektów:
+
+  
+\begin{verbatim} 
+Object.prototype.properties = function() {
+  var result = [];
+  for (var property in this)
+    result.push(property);
+  return result;
+};
+
+var test = {x: 10, y: 3};
+show(test.properties());
+// → ["x", "y", "properties"]
+\end{verbatim}
+  
+Od razu widać, w czym tkwi problem. Od tej chwili prototyp \texttt{Object} ma własność o nazwie \texttt{properties}, w związku z czym w wyniku iteracji przy użyciu pętli \texttt{for} i \texttt{in}\index{in} po własnościach jakiegokolwiek obiektu otrzymamy także tę wspólną własność, czego normalnie byśmy nie chcieli. Interesują nas jedynie własności należące tylko do tego obiektu.
+
+  
+Na szczęście można sprawdzić, czy wybrana własność należy do obiektu, czy do jednego z jego prototypów. Niestety dodatek tego testu sprawia, że kod pętli staje się nieco niezgrabny. Każdy obiekt ma metodę o nazwie \texttt{hasOwnProperty}\index{hasOwnProperty}, która informuje, czy obiekt ma własność o określonej nazwie. Przy jej użyciu naszą metodę \texttt{properties} moglibyśmy przepisać następująco:
+
+  
+\begin{verbatim} 
+Object.prototype.properties = function() {
+  var result = [];
+  for (var property in this) {
+    if (this.hasOwnProperty(property))
+      result.push(property);
+  }
+  return result;
+};
+
+var test = {"Fat Igor": true, "Fireball": true};
+show(test.properties());
+// → ["Fat Igor", "Fireball"]
+\end{verbatim}
+  
+\index{forEachIn}I oczywiście możemy ją przepisać abstrakcyjnie jako funkcję wyższego rzędu. Zwróć uwagę, że w wywołaniu funkcji \texttt{action} przekazywana jest zarówno nazwa własności jak i jej wartość w obiekcie.
+
+  
+\begin{verbatim} 
+function forEachIn(object, action) {
+  for (var property in object) {
+    if (object.hasOwnProperty(property))
+      action(property, object[property]);
+  }
+}
+
+var chimera = {głowa: "lwa", ciało: "kozła", ogon: "węża"};
+forEachIn(chimera, function(name, value) {
+  print(name, " ", value, ".");
+});
+// → głowa lwa.
+// → ciało kozła.
+// → ogon węża.
+\end{verbatim}
+  
+Ale co będzie, gdy znajdziemy kota o imieniu \texttt{hasOwnProperty}? (Kto wie, jakie imiona ludzie mogą nadawać swoim kotom.) Zostanie ono zapisane w~obiekcie i gdy spróbujemy potem przejrzeć kolekcję kotów, wywołanie metody \texttt{object.hasOwnProperty} nie uda się, ponieważ wartość ta nie będzie już wskazywała wartości funkcyjnej. Można to rozwiązać stosując jeszcze mniej eleganckie rozwiązanie:
+
+  
+\begin{verbatim} 
+function forEachIn(object, action) {
+  for (var property in object) {
+    if (Object.prototype.hasOwnProperty.call(object, property))
+      action(property, object[property]);
+  }
+}
+
+var test = {name: "Mordechai", hasOwnProperty: "Uh-oh"};
+forEachIn(test, function(name, value) {
+  print("Property ", name, " = ", value);
+});
+// → Property name = Mordechai
+// → Property hasOwnProperty = Uh-oh
+\end{verbatim}
+  
+(Uwaga: ten przykład nie działa w przeglądarce Internet Explorer 8, która najwyraźniej ma trudności z przesłanianiem wbudowanych własności prototypów).
+
+  
+W tym kodzie zamiast używać metody z obiektu posługujemy się metodą pobraną z prototypu \texttt{Object}, a następnie stosujemy ją do odpowiedniego obiektu za pomocą funkcji \texttt{call}. Jeśli nikt nie nabałagani w tej metodzie w \texttt{Object.prototype} (a nie należy tego robić), to program powinien działać prawidłowo.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Metody \texttt{hasOwnProperty} można także używać w tych sytuacjach, w których używaliśmy operatora \texttt{in}\index{in}, aby dowiedzieć się czy wybrany obiekt ma określoną własność. Jest jednak pewien haczyk. W \hyperref[chap:4]{rozdziale 4} dowiedziałeś się, że niektóre własności, np. \texttt{toString}, są ukryte i pętle \texttt{for}-\texttt{in} ich nie wykrywają. Przeglądarki z rodziny Gecko (przede wszystkim Firefox) każdemu obiektowi przypisują ukrytą własność o nazwie \texttt{\_\_proto\_\_} wskazującą prototyp tego obiektu. Dla niej metoda \texttt{hasOwnProperty} również zwróci \texttt{true}, mimo że nie została dodana bezpośrednio przez program. Dostęp do prototypu obiektu bywa przydatny, ale realizowanie tego w postaci własności nie było najlepszym pomysłem. Niemniej jednak Firefox to bardzo popularna przeglądarka, a więc pisząc aplikację sieciową trzeba o tym pamiętać. Istnieje też metoda o nazwie \texttt{propertyIsEnumerable}\index{propertyIsEnumerable}, która zwraca \texttt{false} dla ukrytych własności i za pomocą której można odfiltrować takie dziwadła, jak \texttt{\_\_proto\_\_}. Poniższe wyrażenie jest dobrym sposobem na obejście omawianego problemu:
+
+  
+\begin{verbatim} 
+var object = {foo: "bar"};
+show(Object.prototype.hasOwnProperty.call(object, "foo") &&
+     Object.prototype.propertyIsEnumerable.call(object, "foo"));
+// → true
+\end{verbatim}
+  
+Proste i eleganckie, prawda? Jest to jedna z tych słabszych stron projektu JavaScriptu. Obiekty pełnią zarówno rolę „wartości z metodami”, dla których prototypy są pożyteczne jak i „zbiorów własności”, którym prototypy tylko przeszkadzają.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Wpisywanie powyższego wyrażenia, za każdym razem gdy trzeba sprawdzić, czy obiekt zawiera jakąś własność jest niewykonalne. Moglibyśmy zdefiniować funkcję, ale jeszcze lepszym rozwiązaniem jest napisanie konstruktora i prototypu specjalnie na okazje, gdy obiekt chcemy traktować jako zestaw własności. Ponieważ można w nim wyszukiwać wartości po nazwach, nazwiemy go \texttt{Dictionary}\index{Dictionary} (słownik).
+
+  
+\begin{verbatim} 
+function Dictionary(startValues) {
+  this.values = startValues || {};
+}
+Dictionary.prototype.store = function(name, value) {
+  this.values[name] = value;
+};
+Dictionary.prototype.lookup = function(name) {
+  return this.values[name];
+};
+Dictionary.prototype.contains = function(name) {
+  return Object.prototype.hasOwnProperty.call(this.values, name) &&
+    Object.prototype.propertyIsEnumerable.call(this.values, name);
+};
+Dictionary.prototype.each = function(action) {
+  forEachIn(this.values, action);
+};
+
+var colours = new Dictionary({Grover: "niebieski",
+                              Elmo: "pomarańczowy",
+                              Bert: "żółty"});
+show(colours.contains("Grover"));
+// → true
+show(colours.contains("constructor"));
+// → false
+colours.each(function(name, colour) {
+  print(name, " jest ", colour);
+});
+// → Grover jest niebieski
+// → Elmo jest pomarańczowy
+// → Bert jest żółty
+\end{verbatim}
+  
+Cały mechanizm wykorzystania obiektów jako zbiorów własności został zamknięty w wygodnym interfejsie: jeden konstruktor i cztery metody. Zauważ, że własność \texttt{values} obiektu \texttt{Dictionary} nie należy do tego interfejsu, tylko jest wewnętrznym szczegółem, którego nie używa się bezpośrednio podczas korzystania z obiektów typu \texttt{Dictionary}.
+
+  
+Do każdego tworzonego przez siebie interfejsu powinno dodać się krótki komentarz opisujący sposób jego działania i użycia. Dzięki temu, gdy za kilka miesięcy ktoś (może Ty sam) zechce go użyć, będzie mógł szybko przeczytać instrukcję obsługi zamiast studiować kod.
+
+  
+Zazwyczaj krótko po zaprojektowaniu interfejsu odkrywa się jego ograniczenia i usterki, które należy zmienić. Dlatego dla oszczędności czasu zaleca się dokumentowanie interfejsów dopiero \emph{po} pewnym czasie ich użytkowania, gdy zostanie udowodnione, że są praktyczne. Oczywiście to może być pokusą, aby w ogóle zapomnieć o pisaniu dokumentacji. Sam robienie tego traktuję jako czynność wykończeniową podczas prac nad systemem. Gdy interfejs jest gotowy, po prostu stwierdzam, że czas coś o nim napisać, aby przekonać się, że jego opis w języku ludzkim brzmi równie dobrze, jak w języku JavaScript (lub jakimkolwiek innym języku programowania, jakiego używamy).
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Rozróżnienie zewnętrznego interfejsu i wewnętrznych szczegółów obiektu jest ważne z dwóch powodów. Po pierwsze dzięki niewielkiemu i ściśle zdefiniowane interfejsowi obiekt jest łatwy w użyciu. Trzeba tylko znać ten interfejs, a resztę kodu obiektu nie musimy się interesować, chyba że chcemy coś w nim zmienić.
+
+  
+Po drugie często zdarza się, że trzeba coś zmienić w wewnętrznej implementacji obiektu, aby był bardziej praktyczny, lepiej działał albo żeby usunąć usterkę. Gdyby w innych częściach programu używane były wszystkie własności i elementy budowy obiektu, nie można by było w nim nic zmienić bez dodatkowego modyfikowania dużych partii kodu w innych miejscach. Jeśli na zewnętrz obiektu używany jest tylko jego niewielki interfejs, można wprowadzać dowolne zmiany w implementacji, pod warunkiem, że nie rusza się tego interfejsu.
+
+  
+Niektórzy traktują to niezwykle poważnie. Osoby takie np. w interfejsach obiektów nigdy nie umieszczają własności, a jedynie metody — jeśli ich typ obiektowy ma długość, to jest ona dostępna poprzez metodę \texttt{getLength}, a nie własność \texttt{length}. Dzięki temu, jeśli kiedyś zechcą ze swojego obiektu usunąć własność \texttt{length}, bo np. od tej pory zawiera on wewnętrzną tablicę, której długość musi zwracać, mogą zmodyfikować funkcję bez zmieniania interfejsu.
+
+  
+Jednak moim zdaniem nie jest to warte zachodu. Dodanie metody o nazwie \texttt{getLength}, która zawiera tylko instrukcję \texttt{return this.length;} jest niepotrzebnym mnożeniem kodu. Dla mnie w większości przypadków taki bezsensowny kod jest większym problemem niż konieczność zmiany interfejsu raz na gody.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Bardzo przydatne jest dodawanie nowych metod do istniejących prototypów. W języku JavaScript dodatkowe metody przydałyby się prototypom \texttt{Array} i \texttt{String}. Moglibyśmy np. zamienić funkcje \texttt{forEach} i \texttt{map} metodami tablic, a funkcję \texttt{startsWith} napisaną w \hyperref[chap:4]{rozdziale 4} zamienić w metodę łańcuchów.
+
+  
+Jeśli jednak Twój program będzie działał na jednej stronie internetowej z innym programem, w którym programista używa konstrukcji \texttt{for}-\texttt{in} naiwnie ― czyli tak, jak my do tej pory ― to dodanie metod do prototypów, zwłaszcza \texttt{Object} i \texttt{Array}, na pewno spowoduje problemy, ponieważ pętle te nagle zaczną znajdować nowe własności. Dlatego niektórzy wolą w ogóle nie ruszać tych prototypów. Oczywiście jeśli jesteś ostrożny i nie spodziewasz się, że Twój kod będzie pracował obok jakiegoś źle napisanego programu, dodawanie metod do standardowych prototypów jest jak najbardziej wartościową techniką.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+W tym rozdziale zbudujemy wirtualne terrarium, czyli pojemnik zawierający fruwające owady. W programie tym będziemy używać obiektów, co chyba Cię nie dziwi, skoro temat tego rozdziału to programowanie obiektowe w JavaScript. Nie będziemy tworzyć niczego skomplikowanego. Nasze terrarium będzie dwuwymiarową siatką, jak druga mapa w \hyperref[chap:7]{rozdziale 7}. Na siatce rozmieszczone są owady. Gdy terrarium jest aktywne, każdy owad może wykonać jakąś czynność, np poruszyć się co pół sekundy.
+
+  
+W związku z tym podzielimy przestrzeń i czas na jednostki o stałym rozmiarze ― kwadraty dla przestrzeni i połówki sekund dla czasu. Zaletą tego jest uproszczenie modelowania w programie, a wadą niska precyzja. Na szczęście w tym symulatorze terrarium nic nie musi być precyzyjne, a więc nie ma problemu.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Terrarium można zdefiniować przy użyciu szablonu będącego tablicą łańcuchów. Moglibyśmy użyć pojedynczego łańcucha, ale ponieważ w JavaScripcie łańcuchy muszą w całości mieścić się w jednym wierszu, byłoby to trudne do zrealizowania.
+
+  
+\begin{verbatim} 
+var thePlan =
+  ["############################",
+   "#      #    #      o      ##",
+   "#                          #",
+   "#          #####           #",
+   "##         #   #    ##     #",
+   "###           ##     #     #",
+   "#           ###      #     #",
+   "#   ####                   #",
+   "#   ##       o             #",
+   "# o  #         o       ### #",
+   "#    #                     #",
+   "############################"];
+ \end{verbatim}
+  
+Znaki \texttt{\#} reprezentują ściany terrarium (i znajdujące się w nim ozdobne kamienie), znaki \texttt{o} reprezentują owady, a spacje, jak się pewnie domyślasz oznaczają puste miejsce.
+
+  
+Z takiej tablicy można utworzyć obiekt terrarium. W obiekcie tym przechowywane będą kształt i zawartość terrarium oraz będzie on umożliwiał poruszanie się owadom. Obiekt ma cztery metody: Pierwsza to \texttt{toString}, która konwertuje terrarium na łańcuch podobny do bazowego planu, dzięki czemu można zobaczyć, co się dzieje wewnątrz. Metoda \texttt{step} pozwala owadom wykonać pojedynczy ruch, jeśli sobie tego życzą. Natomiast metody \texttt{start} i \texttt{stop} służą do „włączania” i wyłączania” terrarium. Gdy terrarium jest uruchomione, metoda \texttt{step} jest wywoływana automatycznie co pół sekundy powodując ruch owadów.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 8.1}
+\label{sec:8.1}
+  
+    
+\index{Point}Punkty na siatce także będą reprezentowane jako obiekty. W \hyperref[chap:7]{rozdziale 7} do pracy z punktami używane były trzy funkcje: \texttt{point}, \texttt{addPoints} oraz \texttt{samePoint}. Tym razem użyjemy konstruktora i dwóch metod. Napisz konstruktor \texttt{Point} pobierający dwa argumenty będące współrzędnymi x i y punktu i tworzący obiekt zawierający własności \texttt{x} i \texttt{y}. Prototypowi tego konstruktora dodaj metodę \texttt{add} pobierającą punkt jako argument i zwracającą \emph{nowy} punkt, którego współrzędne \texttt{x} i \texttt{y} są sumą współrzędnych \texttt{x} i \texttt{y} dwóch podanych punktów. Dodatkowo napisz metodę \texttt{isEqualTo} pobierającą punkt i zwracającą wartość logiczną oznaczającą, czy ten (\texttt{this}) punkt ma takie same współrzędne, jak podany punkt.
+
+    
+Oprócz wymienionych dwóch metod w skład interfejsu tego typu obiektów wchodzą również własności \texttt{x} i \texttt{y}: Kod używający obiektów punktów może dowolnie pobierać i modyfikować własności \texttt{x} i \texttt{y}.
+
+  
+[\hyperref[sol:8.1]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Podczas pisania obiektów do implementacji programu nie zawsze jest jasne, gdzie powinny być zaimplementowane różne funkcje. Niektóre rzeczy najlepiej jest zrealizować jako metody obiektów, inne lepiej wyrazić jako osobne funkcje, a jeszcze inne najlepiej jest zaimplementować poprzez dodanie nowego typu obiektowego. Aby kod był klarowny i dobrze zorganizowany, należy starać się liczbę metod i obowiązków obiektów sprowadzić do minimum. Gdy obiekt wykonuje zbyt wiele zadań, robi się w nim bałagan, który bardzo trudno zrozumieć.
+
+  
+Wcześniej napisałem, że obiekt terrarium będzie odpowiedzialny za przechowywanie zawartości terrarium i możliwość ruchu owadów. Należy podkreślić słowo \emph{możliwość}, które nie oznacza \emph{przymusu}. Same owady też będą obiektami i w ich gestii będzie leżeć podejmowanie decyzji, co w danym momencie zrobić. Terrarium umożliwia zaledwie pytanie owadów, czy chcą coś zrobić co pół sekundy i jeśli owad zechce się poruszyć, terrarium zadba o to, aby tak się stało.
+
+  
+Przechowywanie siatki, na której rozmieszczona jest zawartość terrarium może być skomplikowane. Trzeba zdefiniować jakąś reprezentację, sposoby dostępu do tej reprezentacji, sposób inicjacji siatki z tablicowego planu, sposób zapisania zawartości siatki w łańcuchu za pomocą metody \texttt{toString} oraz ruch owadów na siatce. Dobrze by było przynajmniej część tych obowiązków przenieść na inny obiekt, aby obiekt terrarium nie stał się zbyt rozbudowany.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Zawsze gdy natkniesz się na problem pomieszania reprezentacji danych i~kodu implementacyjnego w jednym obiekcie, dobrym pomysłem jest wydzielenie kodu dotyczącego reprezentacji danych do osobnego typu obiektu. W~tym przypadku potrzebujemy reprezentacji siatki wartości, a więc napisałem typ o nazwie \texttt{Grid} obsługujący operacje wymagane przez terrarium.
+
+  
+Wartości na siatce można zapisywać na dwa sposoby: Można użyć tablicy tablic:
+
+  
+\begin{verbatim} 
+var grid = [["0,0", "1,0", "2,0"],
+            ["0,1", "1,1", "2,1"]];
+show(grid[1][2]);
+// → "2,1"
+\end{verbatim}
+  
+Ale można też wszystkie wartości umieścić w jednej tablicy. W tym przypadku element o współrzędnych \texttt{x},\texttt{y} można znaleźć pobierając element znajdujący się w tablicy na pozycji \texttt{x + y * width}, gdzie \texttt{width} to szerokość siatki.
+
+  
+\begin{verbatim} 
+var grid = ["0,0", "1,0", "2,0",
+            "0,1", "1,1", "2,1"];
+show(grid[2 + 1 * 3]);\\
+// → "2,1"
+\end{verbatim}
+  
+\index{Array}Zdecydowałem się na drugie z przedstawionych rozwiązań, ponieważ o~wiele łatwiej jest w nim zainicjować tablicę. Instrukcja \texttt{new Array(x)} tworzy nową tablicę o długości \texttt{x}, wypełnioną wartościami \texttt{undefined}.
+
+  
+\begin{verbatim} 
+function Grid(width, height) {
+  this.width = width;
+  this.height = height;
+  this.cells = new Array(width * height);
+}
+Grid.prototype.valueAt = function(point) {
+  return this.cells[point.y * this.width + point.x];
+};
+Grid.prototype.setValueAt = function(point, value) {
+  this.cells[point.y * this.width + point.x] = value;
+};
+Grid.prototype.isInside = function(point) {
+  return point.x >= 0 && point.y >= 0 &&
+         point.x < this.width && point.y < this.height;
+};
+Grid.prototype.moveValue = function(from, to) {
+  this.setValueAt(to, this.valueAt(from));
+  this.setValueAt(from, undefined);
+};
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 8.2}
+\label{sec:8.2}
+  
+    
+Będziemy też potrzebować sposobu na przeglądanie wszystkich elementów siatki, aby znaleźć owady, które mają się poruszyć i przekonwertować całość na łańcuch. Najłatwiej będzie napisać funkcję wyższego rzędu pobierającą jako argument akcję. Dodaj metodę \texttt{each} do prototypu \texttt{Grid}, która jako argument będzie pobierać funkcję dwóch argumentów. Metoda będzie wywoływać tę funkcję dla każdego punktu na siatce przekazując jej jako pierwszy argument obiekt tego punktu, a jako drugi argument — wartość znajdującą się w tym punkcie na siatce.
+
+    
+Przeglądanie rozpocznij w punkcie \texttt{0},\texttt{0} i przeglądaj po jednym wierszu, tzn. tak, aby punkt \texttt{1},\texttt{0} został odwiedzony wcześniej niż \texttt{0},\texttt{1}. To ułatwi późniejsze napisanie funkcji \texttt{toString} terrarium. (Podpowiedź: pętlę \texttt{for} dla współrzędnej \texttt{x} umieść wewnątrz pętli dla współrzędnej \texttt{y}.)
+
+    
+Lepiej jest nie kombinować bezpośrednio z własnością \texttt{cells} obiektu siatki, tylko zamiast tego do wartości dostać się używając \texttt{valueAt}. Dzięki temu, jeśli postanowimy do zapisywania wartości użyć innej metody, będziemy musieli przepisać tylko \texttt{valueAt} i \texttt{setValueAt}, a pozostałe metody pozostawić bez zmian.
+
+  
+[\hyperref[sol:8.2]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Przetestujemy siatkę:
+
+  
+\begin{verbatim} 
+var testGrid = new Grid(3, 2);
+testGrid.setValueAt(new Point(1, 0), "#");
+testGrid.setValueAt(new Point(1, 1), "o");
+testGrid.each(function(point, value) {
+  print(point.x, ",", point.y, ": ", value);
+});
+// → 0,0: undefined
+// → 1,0: #
+// → 2,0: undefined
+// → 0,1: undefined
+// → 1,1: o
+// → 2,1: undefined
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Zanim napiszemy konstruktor \texttt{Terrarium}, musimy skonkretyzować obiekty owadów, które mają w nim żyć. Wcześniej napisałem, że terrarium będzie pytać owady, jaką czynność chcą wykonać. Będzie się to odbywać następująco: każdy obiekt owada będzie miał metodę \texttt{act} zwracającą „akcję”. Akcja to obiekt zawierający własność \texttt{type} określającą nazwę typu czynności, jaką owad chce wykonać, np. \texttt{move} (ruch). Większość akcji zawiera dodatkowe informacje, takie jak kierunek, w jakim owad chce się poruszyć.
+
+  
+Owady są niezwykle krótkowzroczne, przez co widzą tylko kwadraty znajdujące się w ich bezpośrednim sąsiedztwie. Ale to wystarczy, aby wykonać ruch. Przy wywoływaniu metodzie \texttt{act} będzie przekazywany obiekt zawierający informacje o otoczeniu określonego owada. W obiekcie tym będzie znajdować się własność dla każdego z ośmiu kierunków. Własność wskazująca, co znajduje się powyżej będzie miała nazwę \texttt{n} (od North — północ), własność kierunku w górę i na prawo będzie się nazywała \texttt{ne} (od North-East itd.). Kierunki, do których odnoszą się poszczególne nazwy można znaleźć w~poniższym obiekcie słownikowym:
+
+  
+\begin{verbatim} 
+var directions = new Dictionary(
+  {"n":  new Point( 0, -1),
+   "ne": new Point( 1, -1),
+   "e":  new Point( 1,  0),
+   "se": new Point( 1,  1),
+   "s":  new Point( 0,  1),
+   "sw": new Point(-1,  1),
+   "w":  new Point(-1,  0),
+   "nw": new Point(-1, -1)});
+
+show(new Point(4, 4).add(directions.lookup("se")));
+// → {x: 5, y: 5, add: <function (other)>, …}
+\end{verbatim}
+  
+Gdy owad postanowi się poruszyć, wskaże interesujący go kierunek nadając powstałemu w wyniku tej decyzji obiektowi akcji własność \texttt{direction} zawierającą nazwę jednego z kierunków. Możemy też zrobić głupiego owada, który zawsze porusza się w jednym kierunku — do światła:
+
+  
+\begin{verbatim} 
+function StupidBug() {};
+StupidBug.prototype.act = function(surroundings) {
+  return {type: "move", direction: "s"};
+};
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Teraz może rozpocząć pracę nad obiektem \texttt{Terrarium}. Zaczniemy od konstruktora, który będzie przyjmował plan (będący tablicą łańcuchów)  jako argument i inicjował jego siatkę.
+
+  
+\begin{verbatim} 
+var wall = {};
+
+function Terrarium(plan) {
+  var grid = new Grid(plan[0].length, plan.length);
+  for (var y = 0; y < plan.length; y++) {
+    var line = plan[y];
+    for (var x = 0; x < line.length; x++) {
+      grid.setValueAt(new Point(x, y),
+                      elementFromCharacter(line.charAt(x)));
+    }
+  }
+  this.grid = grid;
+}
+
+function elementFromCharacter(character) {
+  if (character == " ")
+    return undefined;
+  else if (character == "#")
+    return wall;
+  else if (character == "o")
+    return new StupidBug();
+}
+\end{verbatim}
+  
+\texttt{wall} to obiekt służący do oznaczania ścian siatki. Jak na ścianę przystało, nic nie robi, tylko stoi w jednym miejscu i nie pozwala przejść.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Najprostszą metodą obiektu jest \texttt{toString}, która zamienia terrarium w~łańcuch. Aby sobie ułatwić, zaznaczymy \texttt{wall} i prototyp owada \texttt{StupidBug} własnością \texttt{character} zawierającą znak reprezentujący owady.
+
+  
+\begin{verbatim} 
+wall.character = "#";
+StupidBug.prototype.character = "o";
+
+function characterFromElement(element) {
+  if (element == undefined)
+    return " ";
+  else
+    return element.character;
+}
+
+show(characterFromElement(wall));
+// → "#"
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 8.3}
+\label{sec:8.3}
+  
+    
+Teraz do utworzenia łańcucha możemy użyć metody \texttt{each} obiektu \texttt{Grid}. Jednak aby wynik był czytelny, przydałoby się na końcu każdego wiersza dodać znak nowego wiersza. Końce rzędów można znaleźć po współrzędnej \texttt{x} pozycji na siatce. Dodaj do prototypu \texttt{Terrarium} metodę \texttt{toString}, która nie pobiera żadnych argumentów i zwraca łańcuch, który po przekazaniu do funkcji \texttt{print} prezentuje się jako dwuwymiarowy widok terrarium.
+
+  
+[\hyperref[sol:8.3]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Niewykluczone, że próbując rozwiązać powyższe zadanie próbowałeś uzyskać dostęp do \texttt{this.grid} wewnątrz funkcji przekazywanej jako argument do metody \texttt{each} siatki. To się nie uda. Wywołanie funkcji zawsze powoduje powstanie nowej zmiennej \texttt{this} wewnątrz tej funkcji, nawet jeśli nie jest ona używana jako metoda. Przez to żadna zmienna \texttt{this} z poza funkcji nie będzie widoczna.
+
+  
+Czasami problem ten można łatwo obejść zapisując potrzebne informacje w zmiennej, np. \texttt{endOfLine}, która \emph{jest} widoczna w funkcji wewnętrznej. Jeśli potrzebujesz dostępu do całego obiektu \texttt{this}, to jego również możesz zapisać w zmiennej. Zmiennej takiej często nadaje się nazwę \texttt{self} (albo \texttt{that}).
+
+  
+Jednak w działaniach tych można się w końcu pogubić. Innym dobrym rozwiązaniem jest użycie funkcji podobnej do \texttt{partial} z \hyperref[chap:6]{rozdziału 6}. Zamiast dodawać argumenty do funkcji, ta dodaje obiekt \texttt{this} używając pierwszego argumentu metody \texttt{apply} funkcji:
+
+  
+\begin{verbatim} 
+function bind(func, object) {
+  return function(){
+    return func.apply(object, arguments);
+  };
+}
+
+var testArray = [];
+var pushTest = bind(testArray.push, testArray);
+pushTest("A");
+pushTest("B");
+show(testArray);
+// → ["A", "B"]
+\end{verbatim}
+  
+W ten sposób można powiązać (\texttt{bind}) wewnętrzną funkcję z \texttt{this} i będzie ona miała tę samą zmienną \texttt{this}, co funkcja zewnętrzna.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 8.4}
+\label{sec:8.4}
+  
+    
+W wyrażeniu \texttt{bind(testArray.push, testArray)} nazwa \texttt{testArray} występuje dwa razy. Potrafisz zaprojektować funkcję o nazwie \texttt{method}\index{method} pozwalającą powiązać obiekt z jedną z jego metod \emph{bez} podawania nazwy obiektu dwa razy?
+
+  
+[\hyperref[sol:8.4]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Funkcji \texttt{bind} (lub \texttt{method}) będziemy potrzebować przy implementowaniu metody \texttt{step} naszego terrarium. Metoda ta musi przejrzeć wszystkie owady na siatce, spytać je o zamierzone działanie i wykonać to działanie. Może Cię kusić, aby przejrzeć siatkę za pomocą instrukcji \texttt{each} i zrobić, co trzeba z~każdym napotkanym owadem. Ale wówczas, jeśli owad przemieści się na południe albo wschód, napotkamy go ponownie i znowu pozwolimy mu wykonać ruch.
+
+  
+Dlatego najpierw zbierzemy wszystkie owady do tablicy, a potem je przetworzymy. Poniższa metoda zbiera owady lub inne byty mające metodę \texttt{act} i~zapisuje je w obiektach zawierających dodatkowe informacje o ich bieżącym położeniu:
+
+  
+\begin{verbatim} 
+Terrarium.prototype.listActingCreatures = function() {
+  var found = [];
+  this.grid.each(function(point, value) {
+    if (value != undefined && value.act)
+      found.push({object: value, point: point});
+  });
+  return found;
+};
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 8.5}
+\label{sec:8.5}
+  
+    
+Prosząc owada, aby wykonał jakąś czynność musimy mu przekazać obiekt zawierający informacje o jego aktualnym otoczeniu. W obiekcie tym będą znajdować się własności o nazwach odpowiadających nazwom kierunków, o~których była mowa wcześniej (\texttt{n}, \texttt{ne} itd.). Każda własność zawiera łańcuch składający się z jednego znaku, zwrócony przez \texttt{characterFromElement}, wskazujący co owad widzi w danym kierunku.
+
+    
+Dodaj metodę \texttt{listSurroundings} do prototypu \texttt{Terrarium}. Metoda ta powinna przyjmować jeden argument będący punktem, w którym aktualnie znajduje się owad i zwracać obiekt z informacją o otoczeniu tego punktu. Gdy punkt znajduje się przy krawędzi siatki, kierunki wykraczające poza siatkę oznaczaj znakiem \texttt{\#}, aby owad nie próbował tam się przemieścić.
+
+    
+Podpowiedź: Nie wypisuj wszystkich kierunków, tylko zastosuj metodę \texttt{each} na słowniku \texttt{directions}.
+
+  
+[\hyperref[sol:8.5]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Żadna z powyższych metod nie wchodzi w skład zewnętrznego interfejsu obiektu \texttt{Terrarium} — obie są wewnętrznymi szczegółami. W niektórych językach istnieje możliwość jawnego oznaczenia wybranych metod i własności jako „prywatnych” i spowodowanie, że próba ich użycia poza obiektem zakończy się błędem. W języku JavaScript nie jest to możliwe, przez co trzeba opisać interfejs za pomocą komentarzy. Czasami pomocne może być zastosowanie jakiegoś specyficznego nazewnictwa, aby odróżnić własności zewnętrzne od wewnętrznych. Można np. nazwom wszystkich metod wewnętrznych dodać przedrostek w postaci znaku podkreślenia („\texttt{\_}”). Dzięki temu łatwiej będzie zauważyć wszystkie przypadkowe użycia własności nie należących do interfejsu obiektu.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+W następnej kolejności zajmiemy się kolejną metodą wewnętrzną, tą która pyta owada o czynność i ją wykonuje. Metoda ta przyjmuje jako argument obiekt z własnościami \texttt{object} i \texttt{point} zwrócony przez \texttt{listActingCreatures}. Na razie znana jest jej tylko czynność \texttt{move}:
+
+  
+\begin{verbatim} 
+Terrarium.prototype.processCreature = function(creature) {
+  var surroundings = this.listSurroundings(creature.point);
+  var action = creature.object.act(surroundings);
+  if (action.type == "move" && directions.contains(action.direction)) {
+    var to = creature.point.add(directions.lookup(action.direction));
+    if (this.grid.isInside(to) && this.grid.valueAt(to) == undefined)
+      this.grid.moveValue(creature.point, to);
+  }
+  else {
+    throw new Error("Nieobsługiwana czynność: " + action.type);
+  }
+};
+ \end{verbatim}
+  
+Zauważ, że metoda ta sprawdza czy wybrany kierunek prowadzi do miejsca w obrębie siatki i czy to miejsce jest wolne. Jeśli nie jest, to je ignoruje. Dzięki temu owad może prosić o dowolną czynność. Jeśli jej wykonanie jest niemożliwe, to po prostu nic się nie dzieje. Jest to coś w rodzaju warstwy odizolowującej owady od terrarium, która pozwala nam trochę zaniedbać precyzję przy pisaniu metod \texttt{act} owadów ― np. owad \texttt{StupidBug} zawsze zmierza na południe, niezależnie od tego, czy na jego drodze stoją jakieś ściany.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Te trzy wewnętrzne metody umożliwiły nam napisanie w końcu metody \texttt{step}, która wszystkim owadom daje szansę na wykonanie jakiejś czynności (dotyczy to wszystkich elementów mających metodę \texttt{act} ― moglibyśmy też taką metodę zdefiniować dla obiektu \texttt{wall}, gdybyśmy chcieli mieć ruchome ściany).
+
+  
+\begin{verbatim} 
+Terrarium.prototype.step = function() {
+  forEach(this.listActingCreatures(),
+          bind(this.processCreature, this));
+};
+\end{verbatim}
+  
+Teraz możemy utworzyć terrarium, aby zobaczyć czy owady będą się w~nim poruszać…
+
+  
+\begin{verbatim} 
+var terrarium = new Terrarium(thePlan);
+print(terrarium);
+// → ############################
+//   #      #    #      o      ##
+//   #                          #
+//   #          #####           #
+//   ##         #   #    ##     #
+//   ###           ##     #     #
+//   #           ###      #     #
+//   #   ####                   #
+//   #   ##       o             #
+//   # o  #         o       ### #
+//   #    #                     #
+//   ############################
+terrarium.step();
+print(terrarium);
+// → ############################
+//   #      #    #             ##
+//   #                  o       #
+//   #          #####           #
+//   ##         #   #    ##     #
+//   ###           ##     #     #
+//   #           ###      #     #
+//   #   ####                   #
+//   #   ##                     #
+//   #    #       o         ### #
+//   # o  #         o           #
+//   ############################
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Chwileczkę, jak to możliwe, że powyższe wywołania \texttt{print(terrarium)} powodują wyświetlenie wyniku naszej metody \texttt{toString}\index{toString}? Funkcja \texttt{print} zamienia swoje argumenty na łańcuchy za pomocą funkcji \texttt{String}. Obiekty zamienia się w łańcuchy wywołując ich metodę \texttt{toString}, a więc zdefiniowanie metody \texttt{toString} dla własnych typów obiektowych jest dobrym sposobem na sprawienie, aby były czytelne po wydrukowaniu.
+
+  
+\begin{verbatim} 
+Point.prototype.toString = function() {
+  return "(" + this.x + "," + this.y + ")";
+};
+print(new Point(5, 5));
+// → (5,5)
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Zgodnie z obietnicą obiekty \texttt{Terrarium} otrzymają także metody \texttt{start} i~\texttt{stop} do uruchamiania i wyłączania symulacji. Do ich budowy użyjemy dwóch funkcji dostarczanych przez przeglądarkę: \texttt{setInterval}\index{setInterval} i \texttt{clearInterval}\index{clearInterval}. Pierwsza z nich przyjmuje dwa argumenty. Pierwszy z nich określa kod (funkcję albo łańcuch zawierający kod JavaScript), który ma być przez tę metodę cyklicznie wywoływany. Natomiast drugi określa liczbę milisekund (1/1000 sekundy) między wywołaniami. Zwracana jest wartość, którą możne przekazać do metody \texttt{clearInterval}, aby zatrzymać wykonywanie.
+
+  
+\begin{verbatim} 
+var annoy = setInterval(function() {print("Co?");}, 400);
+\end{verbatim}
+  
+I…
+
+  
+\begin{verbatim} 
+clearInterval(annoy);
+\end{verbatim}
+  
+Istnieją też podobne metody do jednorazowych czynności. Metoda \texttt{setTimeout}\index{setTimeout} powoduje wykonanie funkcji lub łańcucha po upływie określonej liczby milisekund, a \texttt{clearTimeout}\index{clearTimeout} anuluje tę czynność.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\begin{verbatim} 
+Terrarium.prototype.start = function() {
+  if (!this.running)
+    this.running = setInterval(bind(this.step, this), 500);
+};
+
+Terrarium.prototype.stop = function() {
+  if (this.running) {
+    clearInterval(this.running);
+    this.running = null;
+  }
+};
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Mamy już terrarium z kilkoma średnio bystrymi owadami i możemy je nawet uruchomić. Ale żeby zobaczyć, co się dzieje, musimy ciągle wywoływać funkcję \texttt{print(terrarium)}. Nie jest to praktyczne. Lepiej by było, gdyby terrarium było drukowane automatycznie. Ponadto lepszy efekt uzyskamy, jeśli zamiast drukować tysiące terrariów jedno pod drugim będziemy aktualizować jeden wydruk. Jeśli chodzi o drugi z opisanych problemów, to w tej książce dostępna jest pomocnicza funkcja o nazwie \texttt{inPlacePrinter}. Zwraca funkcję podobną do \texttt{print}, która zamiast dodawać wynik do aktualnego wydruku, zastępuje go.
+
+  
+\begin{verbatim} 
+var printHere = inPlacePrinter();
+printHere("Teraz widzisz.");
+setTimeout(partial(printHere, "A teraz nie."), 1000);
+ \end{verbatim}
+  
+Aby terrarium było ponownie drukowane po każdej zmianie, możemy zmodyfikować metodę \texttt{step}:
+
+  
+\begin{verbatim} 
+Terrarium.prototype.step = function() {
+  forEach(this.listActingCreatures(),
+          bind(this.processCreature, this));
+  if (this.onStep)
+    this.onStep();
+};
+ \end{verbatim}
+  
+Do terrarium została dodana własność \texttt{onStep}, która będzie wywoływana w każdym kroku.
+
+  
+\begin{verbatim} 
+var terrarium = new Terrarium(thePlan);
+terrarium.onStep = partial(inPlacePrinter(), terrarium);
+terrarium.start();
+ \end{verbatim}
+  
+Zwróć uwagę na użycie funkcji \texttt{partial} ― tworzy miejscową drukarkę stosowaną do terrarium. Drukarka taka przyjmuje tylko jeden argument, a~więc po jej częściowym zastosowaniu nie pozostają żadne argumenty i staje się funkcją zera argumentów. Dokładnie tego potrzeba nam dla własności \texttt{onStep}.
+
+  
+Pamiętaj, że terrarium należy wyłączyć gdy nie jest już interesujące (co powinno nastąpić dosyć szybko), aby nie zużywało zasobów komputera:
+
+  
+\begin{verbatim} 
+terrarium.stop();
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Ale komu potrzebne jest terrarium z tylko jednym owadem i to głupim? Na pewno nie mnie. Fajnie by było, gdybyśmy mogli dodać jeszcze inne rodzaje owadów. Na szczęście jedyne, co w tym celu musimy zrobić, to uogólnić funkcję \texttt{elementFromCharacter}. Obecnie zawiera ona trzy przypadki, które są w niej bezpośrednio zakodowane:
+
+  
+\begin{verbatim} 
+function elementFromCharacter(character) {
+  if (character == " ")
+    return undefined;
+  else if (character == "#")
+    return wall;
+  else if (character == "o")
+    return new StupidBug();
+}
+ \end{verbatim}
+  
+Dwa pierwszy przypadki może pozostawić, ale trzeci jest o wiele za bardzo specyficzny. Lepszym rozwiązaniem byłoby zapisanie znaków i odpowiadających im konstruktorów owadów w słowniku i pobieranie ich stamtąd:
+
+  
+\begin{verbatim} 
+var creatureTypes = new Dictionary();
+creatureTypes.register = function(constructor) {
+  this.store(constructor.prototype.character, constructor);
+};
+
+function elementFromCharacter(character) {
+  if (character == " ")
+    return undefined;
+  else if (character == "#")
+    return wall;
+  else if (creatureTypes.contains(character))
+    return new (creatureTypes.lookup(character))();
+  else
+    throw new Error("Nieznany znak: " + character);
+}
+ \end{verbatim}
+  
+Zwróć uwagę na sposób dodania metody \texttt{register} do obiektu \texttt{creatureTypes} ― to, że jest to obiekt słownikowy nie znaczy, że nie może on obsługiwać dodatkowej metody. Metoda ta znajduje znak związany z konstruktorem i~zapisuje go w słowniku. Powinna być wywoływana wyłącznie na konstruktorach, których prototypy zawierają własność \texttt{character}.
+
+  
+Teraz metoda \texttt{elementFromCharacter} szuka znaku podanego jej w \texttt{creatureTypes} i zgłasza wyjątek jeśli otrzyma nieznany znak.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Poniżej znajduje się definicja nowego typu owada i wywołanie rejestrujące jego znak w \texttt{creatureTypes}:
+
+  
+\begin{verbatim} 
+function BouncingBug() {
+  this.direction = "ne";
+}
+BouncingBug.prototype.act = function(surroundings) {
+  if (surroundings[this.direction] != " ")
+    this.direction = (this.direction == "ne" ? "sw" : "ne");
+  return {type: "move", direction: this.direction};
+};
+BouncingBug.prototype.character = "%";
+
+creatureTypes.register(BouncingBug);
+ \end{verbatim}
+  
+Rozumiesz jak to działa?
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 8.6}
+\label{sec:8.6}
+  
+    
+Utwórz typ owada o nazwie \texttt{DrunkBug}, który w każdej kolejce próbuje wykonać ruch w losowym kierunku nie zważając na ściany. Przypomnij sobie sztuczkę z \texttt{Math.random} z \hyperref[chap:7]{rozdziału 7}.
+
+  
+[\hyperref[sol:8.6]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Przetestujmy nasze nowe owady:
+
+  
+\begin{verbatim} 
+var newPlan =
+  ["############################",
+   "#                      #####",
+   "#    ##                 ####",
+   "#   ####     ~ ~          ##",
+   "#    ##       ~            #",
+   "#                          #",
+   "#                ###       #",
+   "#               #####      #",
+   "#                ###       #",
+   "# %        ###        %    #",
+   "#        #######           #",
+   "############################"];
+
+var terrarium = new Terrarium(newPlan);
+terrarium.onStep = partial(inPlacePrinter(), terrarium);
+terrarium.start();
+ \end{verbatim}
+  
+Widzisz, jak teraz pijane owady obijają się po całej scenie? Czysta komedia. Gdy nacieszysz już oko tym fascynującym przedstawieniem, wyłącz je:
+
+  
+\begin{verbatim} 
+terrarium.stop();
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Mamy już dwa rodzaje obiektów zawierających metodę \texttt{act} i własność \texttt{character}. Dzięki temu, że mają wspólne te cechy, terrarium może z nimi postępować w taki sam sposób. A to oznacza, że możemy utworzyć dowolną liczbę owadów nie zmieniając niczego w kodzie terrarium. Technika ta to \textbf{polimorfizm}\index{polimorfizm}. Jest to chyba najpotężniejsze narzędzie programowania obiektowego.
+
+  
+Mówiąc najprościej w polimorfizmie chodzi o to, że gdy zostanie napisany moduł kodu przystosowany do współpracy z obiektami mającymi określony interfejs, to można do niego podłączyć obiekt dowolnego typu, który ten interfejs obsługuje. Widzieliśmy już proste przykłady zastosowania tego, np. metodę \texttt{toString} obiektów. Wszystkie obiekty mające zdefiniowaną w~sensowny sposób metodę \texttt{toString} można przekazać do funkcji \texttt{print} oraz innych funkcji konwertujących wartości na łańcuchy i zostanie utworzony prawidłowy łańcuch bez względu na to, jak ich metoda \texttt{toString} go zbuduje.
+
+  
+Analogicznie funkcja \texttt{forEach} działa zarówno na prawdziwych tablicach, jak i pseudotablicach znajdujących się w zmiennej \texttt{arguments}, ponieważ potrzebna jest jej tylko własność \texttt{length} oraz własności o nazwach \texttt{0}, \texttt{1} itd. elementów tablicy.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Aby trochę urozmaicić życie w terrarium, dodamy do niego pojęcia pożywienia i rozmnażania. Każdemu stworzeniu w terrarium dodamy nową własność o nazwie \texttt{energy}, której wartość będzie się zmniejszała w wyniku wykonywanych czynności i zwiększała w wyniku zjadania pożywienia. Gdy żyjątko będzie miało wystarczająco dużo energii, będzie mogło się rozmnożyć\footnote{Dla uproszczenia stworzenia w naszym terrarium rozmnażają się bezpłciowo, same z siebie.}, czyli wygenerować nowe stworzenie tego samego gatunku.
+
+  
+Jeśli w terrarium będą tylko owady marnujące energię na poruszanie się i~zjadanie się nawzajem, szybko pogrąży się ono w entropii, skończy się energia i zostanie tylko martwa pustynia. Aby temu zapobiec (a przynajmniej, żeby nie nastąpiło to zbyt szybko), dodamy do terrarium porosty. Porosty nie ruszają się, a jedynie gromadzą energię dzięki fotosyntezie i rozmnażają się.
+
+  
+Aby to działało, potrzebujemy terrarium z inną metodą \texttt{processCreature}. Moglibyśmy zmienić metodę prototypu \texttt{Terrarium}, ale zbytnio przywiązaliśmy się do symulacji pijanych owadów i nie chcielibyśmy niszczyć starego terrarium.
+
+  
+W związku z tym możemy utworzyć nowy konstruktor, np. o nazwie \texttt{LifeLikeTerrarium}, którego prototyp będzie oparty na prototypie \texttt{Terrarium}, ale który będzie miał inną metodę \texttt{processCreature}.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Pomysł ten można zrealizować na kilka sposobów. Można przejrzeć własności prototypu \texttt{Terrarium.prototype} i dodać je jedna po drugiej do prototypu \texttt{LifeLikeTerrarium.prototype}. Wykonanie tego jest łatwe i w niektórych sytuacjach jest to najlepsze rozwiązanie, ale w tym przypadku jest lepszy sposób. Jeśli stary obiekt prototypowy uczynimy prototypem nowego obiektu prototypowego (możliwe, że będziesz musiał kilka razy przeczytać tę część zdania), to ten nowy obiekt automatycznie otrzyma wszystkie własności starego.
+
+  
+\index{clone}Niestety w języku JavaScript nie da się w łatwy sposób utworzyć obiektu, którego prototypem jest wybrany inny obiekt. Można jednak napisać funkcję, która to zrobi. Trzeba tylko zastosować następującą sztuczkę:
+
+  
+\begin{verbatim} 
+function clone(object) {
+  function OneShotConstructor(){}
+  OneShotConstructor.prototype = object;
+  return new OneShotConstructor();
+}
+ \end{verbatim}
+  
+W funkcji tej użyty jest pusty jednorazowy konstruktor, którego prototypem jest podany obiekt. Jeśli do tego konstruktora zastosuje się operator \texttt{new}, utworzy on nowy obiekt na bazie podanego obiektu.
+
+  
+\begin{verbatim} 
+function LifeLikeTerrarium(plan) {
+  Terrarium.call(this, plan);
+}
+LifeLikeTerrarium.prototype = clone(Terrarium.prototype);
+LifeLikeTerrarium.prototype.constructor = LifeLikeTerrarium;
+ \end{verbatim}
+  
+Nowy konstruktor nie musi robić czegokolwiek innego niż stary, a więc tylko wywołuje stary konstruktor na obiekcie \texttt{this}. Musimy też odtworzyć własność \texttt{constructor} w nowym prototypie, bo jeśli tego nie zrobimy, będzie „twierdził”, że jego konstruktorem jest \texttt{Terrarium} (to oczywiście sprawiałoby problem, gdybyśmy używali tej własności, a tutaj tego nie robimy).
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Teraz można wymienić niektóre metody obiektu \texttt{LifeLikeTerrarium} albo dodać nowe. Utworzyliśmy nowy typ obiektu na bazie innego, dzięki czemu uniknęliśmy przepisywania wszystkich metod, które w \texttt{Terrarium} i~\texttt{LifeLikeTerrarium} są takie same. Technika ta nazywa się \textbf{dziedziczenie}\index{dziedziczenie}. Nowy typ dziedziczy własności po starym typie. W większości przypadków nowy typ obsługuje także interfejs starego typu, ale może mieć dodatkowo inne metody nie obsługiwane przez stary typ. Dzięki temu obiektów nowego typu można używać wszędzie tam, gdzie można używać obiektów starego typu. To się nazywa polimorfizm.
+
+  
+W większości „typowo” obiektowych języków programowania dziedziczenie jest jednym z fundamentów i korzystanie z niego jest bardzo łatwe. W~JavaScripcie jednak nie ma specjalnego mechanizmu, który by to umożliwiał. Z tego też powodu programiści używający JavaScriptu opracowali wiele własnych technik realizacji dziedziczenia. Niestety każda z nich ma jakieś wady. Z drugiej strony jest ich tak dużo, że zawsze da się znaleźć odpowiednią, a~ponadto można stosować sztuczki, które w innych językach są niemożliwe.
+
+  
+Na zakończenie rozdziału pokażę Ci kilka innych technik realizacji dziedziczenia oraz opiszę ich wady.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Poniżej znajduje się kod nowej metody o nazwie \texttt{processCreature}. Metoda ta jest dość duża.
+
+  
+\begin{verbatim} 
+LifeLikeTerrarium.prototype.processCreature = function(creature) {
+  var surroundings = this.listSurroundings(creature.point);
+  var action = creature.object.act(surroundings);
+
+  var target = undefined;
+  var valueAtTarget = undefined;
+  if (action.direction && directions.contains(action.direction)) {
+    var direction = directions.lookup(action.direction);
+    var maybe = creature.point.add(direction);
+    if (this.grid.isInside(maybe)) {
+      target = maybe;
+      valueAtTarget = this.grid.valueAt(target);
+    }
+  }
+
+  if (action.type == "move") {
+    if (target && !valueAtTarget) {
+      this.grid.moveValue(creature.point, target);
+      creature.point = target;
+      creature.object.energy -= 1;
+    }
+  }
+  else if (action.type == "eat") {
+    if (valueAtTarget && valueAtTarget.energy) {
+      this.grid.setValueAt(target, undefined);
+      creature.object.energy += valueAtTarget.energy;
+    }
+  }
+  else if (action.type == "photosynthese") {
+    creature.object.energy += 1;
+  }
+  else if (action.type == "reproduce") {
+    if (target && !valueAtTarget) {
+      var species = characterFromElement(creature.object);
+      var baby = elementFromCharacter(species);
+      creature.object.energy -= baby.energy * 2;
+      if (creature.object.energy > 0)
+        this.grid.setValueAt(target, baby);
+    }
+  }
+  else if (action.type == "wait") {
+    creature.object.energy -= 0.2;
+  }
+  else {
+    throw new Error("Nieobsługiwana czynność: " + action.type);
+  }
+
+  if (creature.object.energy <= 0)
+    this.grid.setValueAt(creature.point, undefined);
+};
+ \end{verbatim}
+  
+Funkcja nadal rozpoczyna działanie od spytania stworzenia, co chce zrobić. Jeśli wybrana czynność ma własność \texttt{direction} (kierunek), oblicza który punkt na siatce ten kierunek wskazuje i jaka wartość aktualnie się w nim znajduje. Informacja ta jest potrzebna trzem z pięcie obsługiwanych akcji i~gdyby każda z nich obliczenia wykonywała osobno, kod byłby jeszcze bardziej niezgrabny. Jeśli nie ma własności \texttt{direction} albo jest niepoprawna, zmienne \texttt{target} i \texttt{valueAtTarget} pozostają niezdefiniowane.
+
+  
+Następnie funkcja przechodzi przez akcje. Niektóre akcje przed wykonaniem wymagają dodatkowych testów, które są realizowane w osobnej instrukcji \texttt{if}, dzięki czemu jeśli jakieś stworzenie spróbuje np. przejść przez ścianę nie generujemy wyjątku \texttt{"Nieobsługiwana czynność"}.
+
+  
+Zwróć uwagę, że w akcji \texttt{reproduce} stworzenie będące rodzicem traci dwa razy tyle energii, co otrzymuje nowonarodzone stworzenie (rodzenie dzieci nie jest łatwe) i potomek pojawia się na siatce tylko, jeśli rodzic ma wystarczająco dużo energii.
+
+  
+Gdy czynność zostanie wykonana sprawdzamy, czy stworzeniu nie wyczerpała się energia. Jeśli tak, stworzenie umiera i usuwamy je.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Porosty nie są skomplikowanymi organizmami. Na planszy będą reprezentowane przez znak \texttt{*}. Upewnij się, że masz zdefiniowaną funkcję \texttt{randomElement} z ćwiczenia 8.6, ponieważ będzie nam tu potrzebna.
+
+  
+\begin{verbatim} 
+function Lichen() {
+  this.energy = 5;
+}
+Lichen.prototype.act = function(surroundings) {
+  var emptySpace = findDirections(surroundings, " ");
+  if (this.energy >= 13 && emptySpace.length > 0)
+    return {type: "reproduce", direction: randomElement(emptySpace)};
+  else if (this.energy < 20)
+    return {type: "photosynthese"};
+  else
+    return {type: "wait"};
+};
+Lichen.prototype.character = "*";
+
+creatureTypes.register(Lichen);
+
+function findDirections(surroundings, wanted) {
+  var found = [];
+  directions.each(function(name) {
+    if (surroundings[name] == wanted)
+      found.push(name);
+  });
+  return found;
+}
+ \end{verbatim}
+  
+Maksymalny poziom energii porostów wynosi 20. Gdyby mogły rosnąć większe, to tworzyłyby \emph{gigantyczne} skupiska i nie byłoby miejsca na rozmnażanie.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 8.7}
+\label{sec:8.7}
+  
+    
+Utwórz stworzenie \texttt{LichenEater} (zjadacz porostów). Początkowo niech ma \texttt{10} jednostek energii i niech zachowuje się następująco:
+
+    \begin{itemize}
+      \item gdy ma nie mniej niż 30 jednostek energii i jest wystarczająco dużo miejsca, rozmnaża się.
+      \item W przeciwnym przypadku, jeśli w pobliżu są jakieś porosty, niech je losowo zjada.
+      \item Jeśli nie ma porostów w pobliżu, ale jest puste miejsce, niech się przemieszcza w losowo wybranym kierunku.
+      \item Jeśli nie ma wolnych miejsc, niech czeka.
+    \end{itemize}
+    
+Do sprawdzania otoczenia i wybierania kierunku użyj metod \texttt{findDirections} i \texttt{randomElement}. Stworom tym przypisz literę \texttt{c} na planszy (jak pac-man).
+
+  
+[\hyperref[sol:8.7]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Wypróbuj to.
+
+  
+\begin{verbatim} 
+var lichenPlan =
+  ["############################",
+   "#                     ######",
+   "#    ***                **##",
+   "#   *##**         **  c  *##",
+   "#    ***     c    ##**    *#",
+   "#       c         ##***   *#",
+   "#                 ##**    *#",
+   "#   c       #*            *#",
+   "#*          #**       c   *#",
+   "#***        ##**    c    **#",
+   "#*****     ###***       *###",
+   "############################"];
+
+var terrarium = new LifeLikeTerrarium(lichenPlan);
+terrarium.onStep = partial(inPlacePrinter(), terrarium);
+terrarium.start();
+ \end{verbatim}
+  
+Najprawdopodobniej najpierw porosty szybko rozrosną się i zajmą dużą część terrarium, po czym duża ilość pożywienia sprawi, że zaczną mnożyć się w dużych ilościach zjadacze porostów, które wytępią porosty i przy okazji samych siebie. Cóż, taka już jest natura.
+
+  
+\begin{verbatim} 
+terrarium.stop();
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Śmierć wszystkich mieszkańców naszego terrarium w ciągu kilku minut nie jest dla nas miła. Aby temu zapobiec, musimy nauczyć zjadaczy porostów długofalowego zarządzania pożywieniem. Jeśli będą zjadać porosty tylko wtedy, gdy w pobliżu widzą przynajmniej dwa krzaki (bez względu na to jak są głodne), to nigdy nie wytępią wszystkich porostów. Do tego potrzebna jest dyscyplina, ale w ten sposób powstanie biotop, który nie będzie niszczył samego siebie. Poniżej znajduje się nowy kod metody \texttt{act} ― jedyna zmiana polega na tym, że jedzenie jest wykonywane tylko wtedy, gdy własność \texttt{lichen.length} ma wartość nie mniejszą od dwóch.
+
+  
+\begin{verbatim} 
+LichenEater.prototype.act = function(surroundings) {
+  var emptySpace = findDirections(surroundings, " ");
+  var lichen = findDirections(surroundings, "*");
+
+  if (this.energy >= 30 && emptySpace.length > 0)
+    return {type: "reproduce", direction: randomElement(emptySpace)};
+  else if (lichen.length > 1)
+    return {type: "eat", direction: randomElement(lichen)};
+  else if (emptySpace.length > 0)
+    return {type: "move", direction: randomElement(emptySpace)};
+  else
+    return {type: "wait"};
+};
+ \end{verbatim}
+  
+Uruchom ponownie terrarium \texttt{lichenPlan} i zobacz, co się dzieje. Po pewnym czasie zjadacze porostów prawdopodobnie wyginą, ponieważ podczas masowego głodu będą poruszać się bezcelowo w przód i w tył, zamiast znajdować porosty znajdujące się tuż obok.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 8.8}
+\label{sec:8.8}
+  
+    
+Zmodyfikuj obiekt \texttt{LichenEater}, aby miał większą szansę na przetrwanie. Nie oszukuj, tzn. \texttt{this.energy += 100} jest niedozwolone. Jeśli od nowa napiszesz konstruktor, nie zapomnij go zarejestrować w słowniku \texttt{creatureTypes} albo terrarium nadal będzie używać starego.
+
+  
+[\hyperref[sol:8.8]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 8.9}
+\label{sec:8.9}
+  
+    
+Łańcuch pokarmowy zawierający tylko jedno ogniwo to wciąż uboga opcja. Czy potrafisz napisać nowego stwora, \texttt{LichenEaterEater} (znak \texttt{@}), który aby żyć musi zjadać zjadaczy porostów? Spróbuj tak go dopasować do ekosystemu, aby zbyt szybko nie wymarł. Dodaj kilka takich stworzeń do tablicy \texttt{lichenPlan} i wypróbuj je.
+
+  
+[\hyperref[sol:8.9]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Na tym zakończymy pracę nad naszym terrarium. W dalszej części rozdziału bardziej dogłębnie zajmiemy się kwestią dziedziczenia i związanymi z~tym problemami w JavaScripcie.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Zaczniemy od odrobiny teorii. Studenci uczący się programowania obiektowego często dyskutują na temat prawidłowych i nieprawidłowych sposobów wykorzystania technik dziedziczenia. Dlatego ważne jest, aby zdawać sobie sprawę, że dziedziczenie to tak naprawdę tylko sztuczka pozwalająca leniwym\footnote{Lenistwo w przypadku programistów niekoniecznie oznacza coś złego. Osoby, które lubią wielokrotnie powtarzać te same czynności są dobrymi robotnikami przy taśmach montażowych i słabymi programistami.} programistom uniknąć pisania części kodu. W związku z tym wszelkie dyskusje dotyczące poprawności stosowania dziedziczenia sprowadzają się do rozstrzygnięcia, czy otrzymany kod działa poprawnie i nie zawiera niepotrzebnych powtórzeń. Z drugiej strony zasady, o których toczone są wspomniane dyskusje mogą być dobrym wstępem do dziedziczenia.
+
+  
+Dziedziczenie to technika tworzenia nowych typów obiektów, tzw. podtypów\index{podtyp}, na bazie istniejących typów, tzw. nadtypów\index{nadtyp}. Podtyp dziedziczy po nadtypie wszystkie własności i metody, a następnie może je modyfikować i ewentualnie dodawać nowe. Dziedziczenie najlepiej jest stosować wtedy, gdy obiekt, którego modelem jest podtyp może \emph{być} określony, jako obiekt nadtypu.
+
+  
+Na przykład typ \texttt{Fortepian} może być podtypem typu \texttt{Instrument}, ponieważ fortepian \emph{jest} instrumentem. Ponieważ fortepian ma szereg klawiszy, niektórych może kusić uczynienie typu \texttt{Fortepian} podtypem typu \texttt{Array}, ale fortepian \emph{nie jest} rodzajem tablicy i jego implementowanie w ten sposób na pewno spowoduje powstanie wielu nonsensów. Fortepian ma też pedały. Można spytać dlaczego element \texttt{piano[0]} reprezentuje pierwszy klawisz, a~nie pedał? W tej sytuacji, jako że każdy fortepian \emph{ma} klawisze, o wiele lepiej byłoby utworzyć obiekt mający własności \texttt{klawisze} i \texttt{pedaly} zawierające tablice.
+
+  
+Każdy podtyp może być nadtypem innego podtypu. Niektóre problemy nawet najlepiej się rozwiązuje poprzez budowę skomplikowanych drzew rodzinnych typów. Należy tylko uważać, żeby z tym nie przesadzić. Nadużywanie dziedziczenia jest prostą drogą do zamienienia programu w jeden wielki bałagan.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Sposób działania słowa kluczowego \texttt{new} i własności \texttt{prototype} konstruktorów narzucają określony sposób używania obiektów. W przypadku prostych obiektów, jak stworzenia w terrarium jest to wystarczające. Jeśli jednak chcemy w programie intensywnie wykorzystywać dziedziczenie, taki sposób obsługi obiektów szybko stanie się niezgrabny. Można sobie ułatwić pracę pisząc funkcje do wykonywania niektórych często wykonywanych zadań. Na przykład wielu programistów definiuje obiektom metody \texttt{inherit} i \texttt{method}.
+
+  
+\begin{verbatim} 
+Object.prototype.inherit = function(baseConstructor) {
+  this.prototype = clone(baseConstructor.prototype);
+  this.prototype.constructor = this;
+};
+Object.prototype.method = function(name, func) {
+  this.prototype[name] = func;
+};
+
+function StrangeArray(){}
+StrangeArray.inherit(Array);
+StrangeArray.method("push", function(value) {
+  Array.prototype.push.call(this, value);
+  Array.prototype.push.call(this, value);
+});
+
+var strange = new StrangeArray();
+strange.push(4);
+show(strange);
+ \end{verbatim}
+  
+Jeśli poszukasz w internecie informacji na tematy „JavaScript” i dziedziczenie (ang. inheritance), to znajdziesz wiele różnych zdań na ten temat, z~których część jest o wiele bardziej skomplikowana i sprytna od przedstawionego przeze mnie.
+
+  
+Zwróć uwagę na sposób, w jaki napisana tu metoda \texttt{push} wykorzystuje metodę \texttt{push} z prototypu swojego typu nadrzędnego. Jest to często spotykany sposób działania, jeśli chodzi o dziedziczenie — metoda w podtypie wewnętrznie używa metody nadtypu, ale jakoś go rozszerza.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Największym problemem z tym prostym podejściem jest dualizm między konstruktorami i prototypami. Konstruktory grają centralną rolę, ponieważ od nich typ obiektowy wywodzi swoją nazwę, a gdy potrzebny jest prototyp, trzeba pobrać własność \texttt{prototype} konstruktora.
+
+  
+To nie tylko wymaga \emph{dużo} pisania (słowo \texttt{prototype} składa się z 9 liter), ale i jest mylące. We wcześniejszym przykładzie musieliśmy napisać pusty i~bezużyteczny konstruktor dla typu \texttt{StrangeArray}. Sam nie raz omyłkowo dodałem metody do konstruktora zamiast jego prototypu albo próbowałem wywołać \texttt{Array.slice}, gdy w rzeczywistości chciałem \texttt{Array.prototype.slice}. Moim zdaniem prototyp jest najważniejszym aspektem typu obiektowego, a~konstruktor jest tylko rozszerzeniem, specjalną metodą.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Dodając kilka prostych metod pomocniczych do prototypu \texttt{Object.prototype} można utworzyć alternatywne podejście do obiektów i dziedziczenia. W podejściu tym typ jest reprezentowany przez swój prototyp i do przechowywania prototypów używa się zmiennych o nazwach pisanych wielkimi literami. Gdy trzeba coś „skonstruować”, należy użyć metody o nazwie \texttt{construct}. Dodamy metodę o nazwie \texttt{create} do prototypu \texttt{Object}, która będzie używana w miejsce słowa kluczowego \texttt{new}. Metoda ta będzie klonować obiekt i wywoływać jego metodę \texttt{construct}, jeśli taka istnieje, przekazując jej argumenty, które zostały do niej (\texttt{create}) przekazane.
+
+  
+\begin{verbatim} 
+Object.prototype.create = function() {
+  var object = clone(this);
+  if (typeof object.construct == "function")
+    object.construct.apply(object, arguments);
+  return object;
+};
+ \end{verbatim}
+  
+Dziedziczenie można zrealizować poprzez sklonowanie obiektu prototypowego i dodanie lub zmodyfikowanie własności. Do tego również napiszemy metodę pomocniczą, o nazwie \texttt{extend}, która będzie klonować obiekt, do którego zostanie zastosowana i dodawać do klonu własności obiektu, który otrzymała w argumencie.
+
+  
+\begin{verbatim} 
+Object.prototype.extend = function(properties) {
+  var result = clone(this);
+  forEachIn(properties, function(name, value) {
+    result[name] = value;
+  });
+  return result;
+};
+ \end{verbatim}
+  
+W przypadkach gdy kombinowanie z prototypem \texttt{Object} nie jest bezpieczne zamiast metod można utworzyć zwykłe funkcje.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Na przykład, jeśli jesteś dość stary, to możliwe, że kiedyś grałeś w grę typu „tekstowa przygoda”, w której chodzi się po świecie używając specjalnych poleceń i otrzymuje się opisy znajdujących się w otoczeniu rzeczy oraz wykonywanych działań. Kiedyś to były gry!
+
+  
+Poniżej znajduje się przykładowy prototyp przedmiotu w takiej.
+
+  
+\begin{verbatim} 
+var Item = {
+  construct: function(name) {
+    this.name = name;
+  },
+  inspect: function() {
+    print("To jest ", this.name, ".");
+  },
+  kick: function() {
+    print("klunk!");
+  },
+  take: function() {
+    print("Nie możesz podnieść ", this.name, ".");
+  }
+};
+
+var lantern = Item.create("brązowa latarnia");
+lantern.kick();
+ \end{verbatim}
+  
+A oto sposób dziedziczenia po nim…
+
+  
+\begin{verbatim} 
+var DetailedItem = Item.extend({
+  construct: function(name, details) {
+    Item.construct.call(this, name);
+    this.details = details;
+  },
+  inspect: function() {
+    print("Widzisz ", this.name, ", ", this.details, ".");
+  }
+});
+
+var giantSloth = DetailedItem.create(
+  "wielkiego leniwca",
+  "wisi sobie na drzewie i żuje liście");
+giantSloth.inspect();
+ \end{verbatim}
+  
+Pozbycie się obowiązkowej części \texttt{prototype} sprawia, że wywołania typu \texttt{Item.construct} z konstruktora \texttt{DetailedItem} są nieco prostsze. Zwróć uwagę, że \texttt{this.name = name} w \texttt{DetailedItem.construct} byłoby złym pomysłem. Byłoby to zduplikowanie wiersza. Oczywiście powielenie jednego wiersza jest lepsze niż wywołanie funkcji \texttt{Item.construct}, ale jeśli później zechcemy cos dodać do tego konstruktora, to będziemy musieli zrobić to w dwóch miejscach.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+W większości przypadków konstruktor podtypu powinien zaczynać działanie od wywołania konstruktora nadtypu. Dzięki temu pracę rozpoczyna od poprawnego obiektu nadtypu, który następnie rozszerza. W tym podejściu do prototypów typy nie wymagające konstruktora mogą go opuścić. Odziedziczą go automatycznie po nadtypie.
+
+  
+\begin{verbatim} 
+var SmallItem = Item.extend({
+  kick: function() {
+    print(this.name, " fruwa po pokoju.");
+  },
+  take: function() {
+    // (wyobraź sobie tutaj kod wkładający przedmiot do Twojej kieszeni)
+    print("Bierzesz ", this.name, ".");
+  }
+});
+
+var pencil = SmallItem.create("czerwony ołówek");
+pencil.take();
+ \end{verbatim}
+  
+Mimo że typ \texttt{SmallItem} nie definiuje własnego konstruktora, można go tworzyć przy użyciu argumentu \texttt{name}, ponieważ dziedziczył konstruktor po prototypie \texttt{Item}.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+W języku JavaScript znajduje się operator o nazwie \texttt{instanceof}\index{instanceof}, za pomocą którego można sprawdzić czy obiekt jest utworzony na bazie określonego prototypu. Po lewej stronie podaje się obiekt, a po prawej konstruktor. Zwracana jest wartość logiczna: \texttt{true} jeśli własność \texttt{prototype} konstruktora jest bezpośrednim lub pośrednim prototypem obiektu lub \texttt{false} w przeciwnym przypadku.
+
+  
+Jeśli nie są używane zwykłe konstruktory, używanie tego operatora jest trochę nieporęczne — jego drugim argumentem powinna być funkcja konstrukcyjna, a my mamy tylko prototypy. Problem ten można rozwiązać stosując sztuczkę podobną do tej z funkcją \texttt{clone}: Operatorowi \texttt{instanceof} przekazujemy „fałszywy” konstruktor.
+
+  
+\begin{verbatim} 
+Object.prototype.hasPrototype = function(prototype) {
+  function DummyConstructor() {}
+  DummyConstructor.prototype = prototype;
+  return this instanceof DummyConstructor;
+};
+
+show(pencil.hasPrototype(Item));
+show(pencil.hasPrototype(DetailedItem));
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Następnie chcemy utworzyć mały przedmiot, który ma szczegółowy opis. Wydaje się że przedmiot ten powinien dziedziczyć zarówno po \texttt{DetailedItem} jak i \texttt{SmallItem}. W JavaScripcie obiekt nie może mieć kilku prototypów, a~nawet gdyby mógł, problem i tak nie byłby łatwy do rozwiązania. Na przykład, gdyby \texttt{SmallItem} z jakiegoś powodu zawierał definicję metody \texttt{inspect}, której metody \texttt{inspect} używałby nowy prototyp?
+
+  
+Derywacja typu obiektu z więcej niż jednego typu nadrzędnego nazywa się wielodziedziczeniem\index{wielodziedziczenie}. W niektórych językach jest to całkowicie zabronione, a w innych opracowano skomplikowane zasady, aby to działało i było praktyczne. W języku JavaScript można zaimplementować porządny schemat wielodziedziczenia. Oczywiście, jak to zwykle bywa, można to zrobić na kilka sposobów. Jest to jednak zbyt skomplikowane, aby to tutaj omawiać. Dlatego przedstawiam tylko proste rozwiązanie, które powinno wystarczyć w~większości przypadków.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Domieszka\index{domieszka (mix-in)} (ang. mix-in) to specjalny rodzaj prototypu, który można „wmieszać” w inne prototypy. W ten sposób można potraktować prototyp \texttt{SmallItem}. Kopiując jego metody \texttt{kick} i \texttt{take} do innego prototypu dodamy do niego domieszkę.
+
+  
+\begin{verbatim} 
+function mixInto(object, mixIn) {
+  forEachIn(mixIn, function(name, value) {
+    object[name] = value;
+  });
+};
+
+var SmallDetailedItem = clone(DetailedItem);
+mixInto(SmallDetailedItem, SmallItem);
+
+var deadMouse = SmallDetailedItem.create(
+  "Mysz Fred",
+  "on jest martwy");
+deadMouse.inspect();
+deadMouse.kick();
+ \end{verbatim}
+  
+Pamiętaj, że \texttt{forEachIn} przegląda tylko własności \emph{należące} do obiektu, a~więc skopiuje metody \texttt{kick} i \texttt{take}, ale nie skopiuje konstruktora odziedziczonego przez \texttt{SmallItem} po \texttt{Item}.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Mieszanie prototypów staje się o wiele bardziej skomplikowane, gdy domieszka ma konstruktor lub gdy niektóre jej metody kolidują nazwami z~metodami prototypu, do którego są dodawane. Czasami da się wykonać „domieszkowanie ręczne”. Powiedzmy, że mamy prototyp \texttt{Monster}, który ma swój własny konstruktor, i chcemy go zmieszać z \texttt{DetailedItem}.
+
+  
+\begin{verbatim} 
+var Monster = Item.extend({
+  construct: function(name, dangerous) {
+    Item.construct.call(this, name);
+    this.dangerous = dangerous;
+  },
+  kick: function() {
+    if (this.dangerous)
+      print(this.name, " odgryza Ci głowę.");
+    else
+      print(this.name, " ucieka, szlochając.");
+  }
+});
+
+var DetailedMonster = DetailedItem.extend({
+  construct: function(name, description, dangerous) {
+    DetailedItem.construct.call(this, name, description);
+    Monster.construct.call(this, name, dangerous);
+  },
+  kick: Monster.kick
+});
+
+var giantSloth = DetailedMonster.create(
+
+  "Wielki leniwiec",
+  "wisi sobie na drzewie i żuje liście",
+  true);
+giantSloth.kick();
+ \end{verbatim}
+  
+Zauważ jednak, że konstruktor \texttt{Item} przy tworzeniu \texttt{DetailedMonster} jest wywoływany dwukrotnie ― raz poprzez konstruktor \texttt{DetailedItem}, a drugi raz poprzez konstruktor \texttt{Monster}. W tym przypadku nie powoduje to wielkich szkód, ale w innych może być poważnym problemem.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Mimo tych komplikacji nie zniechęcaj się do dziedziczenia. Wielodziedziczenie, mimo że czasami bardzo przydatne, w większości przypadków można sobie darować. Dlatego właśnie w takich językach jak Java jest ono zabronione. A jeśli kiedyś będziesz go naprawdę potrzebować, możesz poszukać informacji w internecie, zrobić rozeznanie i znaleźć rozwiązanie idealne dla siebie.
+
+  
+Tak mi teraz przyszło do głowy, że JavaScript byłby doskonałym językiem do napisania tekstowej gry przygodowej. Bardzo w tym pomaga możliwość zmieniania zachowań obiektów, którą mamy dzięki prototypowemu dziedziczeniu. Jeśli masz obiekt \texttt{hedgehog}, który ma niezwykłą zdolność toczenia się, gdy zostanie kopnięty, możesz tylko zmienić jego metodę \texttt{kick}.
+
+  
+Niestety tekstowe przygodówki podzieliły losy płyt winylowych i mimo że kiedyś były bardzo popularne, dziś gra w nie tylko garstka \href{http://groups.google.com/group/rec.arts.int-fiction/topics}{zapaleńców}.

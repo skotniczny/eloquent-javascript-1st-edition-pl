@@ -1,0 +1,106 @@
+ \documentclass[12pt, sfheadings, oneside, noindentfirst]{mwbk}
+
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[scaled=0.8]{beramono}
+
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+
+\usepackage{hyperref}
+\usepackage{pdfpages}
+\usepackage{makeidx}
+\makeindex
+
+\usepackage{newunicodechar}
+\newunicodechar{→}{{\tiny$\rightarrow$\normalsize}}
+%~\newunicodechar{←}{$\leftarrow$}
+\newunicodechar{“}{``}
+\newunicodechar{”}{''}
+\newunicodechar{’}{'}
+\newunicodechar{π}{$\pi$}
+\newunicodechar{½}{$\frac{1}{2}$}
+\newunicodechar{⅓}{$\frac{1}{3}$}
+\newunicodechar{¼}{$\frac{1}{4}$}
+\newunicodechar{…}{\ldots}
+\newunicodechar{×}{$\times$}
+\newunicodechar{ϕ}{$\varphi$}
+\newunicodechar{≈}{$\approx$}
+\newunicodechar{―}{---}
+
+\pagestyle{plain} 
+
+\begin{document}
+\author{Marijn Haverbeke}
+\title{\Huge JavaScript. I wszystko jasne \\ \large Nowoczesne wprowadzenie do programowania}
+
+\includepdf[pages=1]{cover.pdf}
+
+\maketitle
+
+\setcounter{page}{2}
+
+\noindent Tytuł oryginału: \emph{Eloquent JavaScript. A Modern Introduction to Programming}
+
+\bigskip
+
+\noindent Tłumaczenie: Łukasz Piwko
+
+\bigskip
+
+\noindent \noindent Copyright \textcopyright{} Marijn Haverbeke
+
+\bigskip
+
+Autorem tej książki jest Marijn Haverbeke \texttt{\href{mailto:marijnh@gmail.com}{<marijnh@gmail.com>}}. Powstała ona w oryginale w wersji cyfrowej, zawierającej interaktywne przykłady kodu i jest dostępna na stronie \texttt{\href{http://eloquentjavascript.net/1st\_edition/}{eloquentjavascript.net/1st\_edition/}}. Istnieje również drugie wydanie które jest dostępne zarówno w formie elektronicznej (\url{http://eloquentjavascript.net}) jak i w wersji papierowej. Wersję papierową można kupić w sklepie \href{http://www.amazon.com/gp/product/1593275846/}{Amazon}.
+
+Polskie tłumaczenie pod tytułem \emph{JavaScript. I wszystko jasne. Nowoczesne wprowadzenie do programowania}  zostało udostępnione w serwisie Shebang (\url{http://shebang.pl/kursy/wszystko-jasne/}) 16 stycznia 2013.
+
+Użyto na licencji Creative Commons Uznanie autorstwa 3.0 Unported (\texttt{\href{http://creativecommons.org/licenses/by/3.0/deed.pl}{http://creativecommons.org/licenses/by/3.0/}}).
+
+\setcounter{tocdepth}{0}
+\tableofcontents
+\setcounter{tocdepth}{2}
+
+\input{r1-wprowadzenie.tex}
+
+\input{r2-podstawy.tex}
+
+\input{r3-funkcje.tex}
+
+\input{r4-obiekty-tablice.tex}
+
+\input{r5-obsluga-bledow.tex}
+
+\input{r6-programowanie-funkcyjne.tex}
+
+\input{r7-wyszukiwanie.tex}
+
+\input{r8-obiektowe.tex}
+
+\input{r9-modularnosc.tex}
+
+\input{r10-wyrazenia-regularne.tex}
+
+\input{r11-programowanie-sieciowe.tex}
+
+\input{r12-dom.tex}
+
+\input{r13-zdarzenia-przegladarek.tex}
+
+\input{r14-zadania-http.tex}
+
+\appendix
+
+\input{d1-instrukcje-sterujace.tex}
+
+\input{d2-kopiec-binarny.tex}
+
+\input{rozwiazania.tex}
+
+\printindex
+
+\end{document}

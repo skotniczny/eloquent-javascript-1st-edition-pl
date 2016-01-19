@@ -1,0 +1,295 @@
+\chapter{Obsługa błędów}
+\label{chap:5}
+
+  
+Pisanie programów, które działają, gdy wszystko się udaje jest dobre na początek. Jednak prawdziwe wyzwanie to napisać program, który potrafi odpowiednio się zachować, gdy wystąpią jakieś niespodziewane zdarzenia.
+
+  
+Wyróżnia się dwa rodzaje trudnych sytuacji, w jakich może znaleźć się program: spowodowane błędem programisty i przez czynniki zewnętrzne. Przykładem pierwszego rodzaju problemów jest niepodanie funkcji wymaganego argumentu. Natomiast czynnikiem zewnętrznym niezależnym od programisty jest np. sytuacja, gdy program wymaga podania hasła, a zamiast niego otrzymuje pusty łańcuch.
+
+  
+Ogólnie rzecz biorąc błędy programistyczne po prostu trzeba znaleźć i~poprawić. Natomiast błędy spowodowane czynnikami zewnętrznymi należy przewidzieć, aby opracować algorytmy pozwalające programowi wyjść z~trudnych sytuacji (np. ponownie wyświetlając prośbę o podanie imienia) albo przynajmniej zakończyć działanie w elegancki i kontrolowany sposób.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Ważne jest, aby umieć oceniać, do której kategorii należy dany błąd. Weźmy np. naszą starą funkcję \texttt{power}:
+
+  
+\begin{verbatim} 
+function power(base, exponent) {
+  var result = 1;
+  for (var count = 0; count < exponent; count++)
+    result *= base;
+  return result;
+}
+ \end{verbatim}
+  
+Gdy jakiś wariat spróbuje wykonać wywołanie \texttt{power("Królik", 4)}, to jest to oczywiście błąd programistyczny, ale czy wywołanie \texttt{power(9, 0.5)} też nim jest? Nasza funkcja nie obsługuje potęg ułamkowych, ale w matematyce takie potęgowanie jest jak najbardziej dozwolone (funkcja \texttt{Math.pow}\index{Math.pow} też je obsługuje). Jeśli nie ma całkowitej jasności co do tego, jakie wartości przyjmuje funkcja, zazwyczaj dobrym posunięciem jest wypisanie przyjmowanych argumentów w komentarzu.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Co powinna zrobić funkcja, gdy napotka problem, którego sama nie może rozwiązać? W \hyperref[chap:4]{rozdziale 4} napisaliśmy funkcję o nazwie \texttt{between}:
+
+  
+\begin{verbatim} 
+function between(string, start, end) {
+  var startAt = string.indexOf(start) + start.length;
+  var endAt = string.indexOf(end, startAt);
+  return string.slice(startAt, endAt);
+}
+ \end{verbatim}
+  
+Jeśli ciągi \texttt{start} i \texttt{end} nie zostaną znalezione w łańcuchu, funkcja \texttt{indexOf} zwróci \texttt{-1} i funkcja \texttt{between} zwróci same bzdury: wywołanie \texttt{between("Your mother!", "\{-", "-\}")} zwróci \texttt{"our mother"}.
+
+  
+Gdy w czasie działania programu funkcja zostanie wywołana w taki sposób, kod który ją wywołał otrzyma łańcuch zgodnie z oczekiwaniami i będzie na nim dalej operował. Jednak łańcuch zwrócony przez funkcję jest nieprawidłowy i wynik działań na nim wykonywanych również będzie niepoprawny. A jeśli będziesz mieć pecha, błąd ten ujawni się dopiero po tym, jak zostanie wykonanych kolejnych 20 funkcji. Znalezienie przyczyny problemów w takiej sytuacji jest bardzo trudne.
+
+  
+W niektórych rzadkich przypadkach można sobie darować sprawdzanie, czy funkcja działa prawidłowo. Jeśli np. wiadomo, że funkcja będzie wywoływana tylko w kilku miejscach i w każdym z nich otrzyma poprawne dane wejściowe, to zazwyczaj nie ma sensu trudzić się i rozbudowywać funkcję o~niepotrzebne mechanizmy zachowania w trudnych sytuacjach.
+
+  
+Jednak najczęściej funkcje, które w żaden sposób nie informują o błędach są trudne w użyciu, a nawet niebezpieczne. Co by było, gdyby w kodzie wywołującym funkcję \texttt{between} chciano sprawdzić, czy wszystko poszło dobrze? Nie da się tego zrobić, chyba że zrobi się jeszcze raz to samo, co zrobiła funkcja \texttt{between} i porówna otrzymany wynik z wynikiem zwróconym przez tę funkcję. Tak nie powinno być. Jednym z możliwych rozwiązań jest sprawienie, aby funkcja \texttt{between} zwracała jakąś specjalną wartość, np. \texttt{false} albo \texttt{undefined}, gdy wystąpi błąd w jej działaniu.
+
+  
+\begin{verbatim} 
+function between(string, start, end) {
+  var startAt = string.indexOf(start);
+  if (startAt == -1)
+    return undefined;
+  startAt += start.length;
+  var endAt = string.indexOf(end, startAt);
+  if (endAt == -1)
+    return undefined;
+
+  return string.slice(startAt, endAt);
+}
+ \end{verbatim}
+  
+Nietrudno zauważyć, że kod wychwytujący błędy raczej nie dodaje funkcjom urody. Ale teraz w kodzie, który wywoła funkcję \texttt{between} można napisać coś takiego:
+
+  
+\begin{verbatim} 
+var input = prompt("Powiedz mi coś", "");
+var parenthesized = between(input, "(", ")");
+if (parenthesized != undefined)
+  print("Napisałeś w nawiasie „", parenthesized, "”.");
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Czasami zwrócenie specjalnej wartości jest idealnym rozwiązaniem na wypadek wystąpienia błędu. Metoda ta ma jednak wady. Po pierwsze funkcja może i bez tego zwracać wszystkie możliwe wartości. Spójrz np. na poniższą funkcję, która pobiera ostatni element z tablicy:
+
+  
+\begin{verbatim} 
+function lastElement(array) {
+  if (array.length > 0)
+    return array[array.length - 1];
+  else
+    return undefined;
+}
+
+show(lastElement([1, 2, undefined]));
+// → undefined
+\end{verbatim}
+  
+Czy tablica miała ostatni element? Po samej wartości zwróconej przez funkcję \texttt{lastElement} nie można się o tym dowiedzieć.
+
+  
+Druga wada metody zwracania specjalnej wartości jest to, że jej zastosowanie może powodować bałagan. Jeśli w jakimś miejscu funkcja \texttt{between} zostanie wywołana 10 razy, to trzeba będzie 10 razy sprawdzić, czy została zwrócona wartość \texttt{undefined}. Ponadto, jeśli funkcja \texttt{between} zostanie wywołana przez inną funkcję nie mającą mechanizmu ochronnego przed awarią, będzie musiała sprawdzić wartość zwrotną funkcji \texttt{between}, i jeśli będzie nią \texttt{undefined}, funkcja ta może zwrócić wywołującemu \texttt{undefined} lub jakąś inną specjalną wartość.
+
+  
+Czasami, gdy wydarzy się coś dziwnego, najlepszym rozwiązaniem jest natychmiastowe wstrzymanie dalszych działań i przejście w miejsce zawierające algorytm pozwalający rozwiązać ten problem.
+
+  
+Na szczęście konstrukcje tego typu występują w wielu językach programowania. Ogólnie techniki te nazywają się obsługą błędów\index{obsługa błędów}.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Teoretycznie obsługa błędów polega na zgłaszaniu przez kod (ang. raise\index{raise} lub throw\index{throw}) wyjątków\index{wyjątek}, które są wartościami. Zgłaszanie wyjątków to trochę jak turbodoładowany zwrot wartości przez funkcję — następuje nie tylko wyjście z bieżącej funkcji, ale i z kodu wywołującego aż do najwyższego poziomu, gdzie rozpoczęła się bieżąca ścieżka wykonywania. Proces ten nazywa się rozwijaniem stosu\index{rozwijanie stosu}. Przypomnij sobie stos\index{stack} wywołań, o którym była mowa w \hyperref[chap:3]{rozdziale 3}. Wyjątek przebiega przez cały ten stos i odrzuca po drodze wszystkie napotkane konteksty wywołań.
+
+  
+Gdyby wyjątek przechodził przez stos bez żadnych przeszkód, nie byłby przydatny i stanowiłby jedynie nowatorski sposób wywoływania awarii w~programie. Na szczęście w różnych miejscach stosu na wyjątki można zastawiać pułapki. Służą do tego klauzule catch\index{klauzula catch}, które pozwalają przechwycić wyjątek i podjąć w związku z tym jakieś czynności, po wykonaniu których program może kontynuować działanie od miejsca, w którym wyjątek został przechwycony.
+
+  
+Na przykład:
+
+  
+\begin{verbatim} 
+function lastElement(array) {
+  if (array.length > 0)
+    return array[array.length - 1];
+  else
+    throw "Nie można pobrać ostatniego elementu pustej tablicy.";
+}
+
+function lastElementPlusTen(array) {
+  return lastElement(array) + 10;
+}
+
+try {
+  print(lastElementPlusTen([]));
+}
+catch (error) {
+  print("Coś poszło nie tak: ", error);
+}
+// → Coś poszło nie tak: Nie można pobrać ostatniego elementu pustej 
+//   tablicy.
+\end{verbatim}
+  
+\texttt{throw}\index{throw} to słowo kluczowe służące do zgłaszania wyjątków. Za pomocą słowa kluczowego \texttt{try}\index{try} zastawia się pułapki na wyjątki: jeśli kod znajdujący się za nim zgłosi wyjątek, zostanie wykonany blok kodu w klauzuli \texttt{catch}\index{catch}. Zmienna, której nazwa znajduje się w nawiasie za słowem \texttt{catch} jest nazwą wartości wyjątku wewnątrz tego bloku.
+
+  
+Zwróć uwagę, że w funkcji \texttt{lastElementPlusTen} kompletnie zignorowano to, że wykonywanie funkcji \texttt{lastElement} mogłoby się nie powieść. Jest to wielka zaleta wyjątków — kod obsługi błędów jest potrzebny tylko w miejscu wystąpienia błędu i jego obsługi. W funkcjach znajdujących się pomiędzy nie trzeba się tym przejmować.
+
+  
+No, może prawie.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Rozważmy następujący przykład: funkcja o nazwie \texttt{processThing} chce sprawić, aby podczas jej wykonywania zmienna najwyższego poziomu \texttt{currentThing} wskazywała określoną wartość, aby inne funkcje również miały dostęp do tej wartości. Normalnie oczywiście wartość tę przekazałoby się jako argument, ale przyjmij na chwilę, że byłoby to niepraktyczne. Gdy funkcja zakończy działanie, zmienna \texttt{currentThing} powinna zostać ustawiona z powrotem na \texttt{null}.
+
+  
+\begin{verbatim} 
+var currentThing = null;
+
+function processThing(thing) {
+  if (currentThing != null)
+    throw "O, nie! Już coś przetwarzamy!";
+
+  currentThing = thing;
+  /* jakieś skomplikowane operacje... */
+  currentThing = null;
+}
+ \end{verbatim}
+  
+A co będzie, jeśli wyjątek zostanie zgłoszony w trakcie wykonywania tych skomplikowanych operacji? Wówczas wywołanie funkcji \texttt{processThing} zostanie wyrzucone ze stosu przez wyjątek i zmienna \texttt{currentThing} nie zostanie z~powrotem ustawiona na \texttt{null}.
+
+  
+Po instrukcjach \texttt{try} może znajdować się dodatkowo słowo kluczowe \texttt{finally}\index{finally} określające blok kodu, który ma zostać wykonany po próbie wykonania bloku \texttt{try} bez względu na to, \emph{co} się stanie. Jeśli funkcja musi coś po sobie uporządkować, to ten kod porządkujący powinien właśnie być umieszczony w bloku \texttt{finally}:
+
+  
+\begin{verbatim} 
+function processThing(thing) {
+  if (currentThing != null)
+    throw "O, nie! Już coś przetwarzamy!";
+
+  currentThing = thing;
+  try {
+    /* jakieś skomplikowane operacje... */
+  }
+  finally {
+    currentThing = null;
+  }
+}
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+W programach JavaScript występuje wiele różnych błędów, które powodują zgłoszenie wyjątków przez środowisko. Na przykład:
+
+  
+\begin{verbatim} 
+try {
+  print(Sasquatch);
+}
+catch (error) {
+  print("Wyjątek: " + error.message);
+}
+// → Wyjątek: Sasquatch is not defined
+\end{verbatim}
+  
+W takich przypadkach zgłaszane są specjalne obiekty wyjątków. Każdy z nich ma własność \texttt{message} zawierającą opis problemu. Podobne obiekty można tworzyć za pomocą słowa kluczowego \texttt{new} i konstruktora \texttt{Error}\index{Error}
+
+  
+\begin{verbatim} 
+throw new Error("Pożar!");
+// → Exception: Error: Pożar!
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Jeśli wyjątek przejdzie przez cały stos i nic go po drodze nie przechwyci, to zostanie obsłużony przez środowisko. Obsługa ta w każdej przeglądarce może być inna. Niektóre aplikacje mogą zapisywać informacje o błędzie w~dzienniku, a inne wyświetlać okno z opisem błędu.
+
+  
+Błędy powodowane przez kod wpisany w konsoli na tej stronie są przechwytywane przez konsolę i wyświetlane wraz z innymi wynikami.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Dla większości programistów wyjątki to nic więcej, jak mechanizm obsługi błędów. Jednak w istocie są one kolejnym sposobem sterowania wykonywaniem programu. Można je np. wykorzystać jako rodzaj instrukcji \texttt{break} w funkcjach rekurencyjnych. Poniżej znajduje się kod dość dziwnej funkcji, która sprawdza czy obiekt, i znajdujące się w jego wnętrzu obiekty, zawiera przynajmniej siedem wartości \texttt{true}:
+
+  
+\begin{verbatim} 
+var FoundSeven = {};
+
+function hasSevenTruths(object) {
+  var counted = 0;
+
+  function count(object) {
+    for (var name in object) {
+      if (object[name] === true) {
+        counted++;
+        if (counted == 7)
+          throw FoundSeven;
+      }
+      else if (typeof object[name] == "object") {
+        count(object[name]);
+      }
+    }
+  }
+
+  try {
+    count(object);
+    return false;
+  }
+  catch (exception) {
+    if (exception != FoundSeven)
+      throw exception;
+    return true;
+  }
+}
+ \end{verbatim}
+  
+Wewnętrzna funkcja \texttt{count} jest rekurencyjnie wywoływana dla każdego obiektu będącego częścią argumentu. Gdy wartość zmiennej \texttt{counted} dojdzie do siedmiu, nie ma sensu kontynuować liczenia, ale sam zwrot z bieżącego wywołania funkcji \texttt{count} niekoniecznie zatrzyma liczenie, ponieważ pod nim mogą być jeszcze inne wywołania. Dlatego użyliśmy instrukcji throw, która powoduje wyjście z wywołań funkcji \texttt{count} i przejście do bloku \texttt{catch}.
+
+  
+Jednak zwrócenie jedynie wartości \texttt{true} w przypadku wyjątku jest niepoprawne. Coś innego mogłoby pójść nie tak i dlatego najpierw sprawdzamy, czy wyjątek jest utworzonym specjalnie na tę okazję obiektem \texttt{FoundSeven}. Jeśli nie, ten blok \texttt{catch} nie wie, jak go obsłużyć, a więc ponawia jego zgłoszenie.
+
+  
+W ten sposób często działa się też przy obsłudze błędów ― blok \texttt{catch} powinien obsługiwać tylko te wyjątki, które potrafi obsłużyć. Zwracanie wartości łańcuchowych za pomocą instrukcji throw, jak w niektórych pokazanych w tym rozdziale przykładach, rzadko kiedy jest dobrym pomysłem, ponieważ trudno jest rozpoznać typ wyjątku. Lepszym pomysłem jest zwracanie niepowtarzalnych wartości, jak np. obiekt \texttt{FoundSeven} albo wprowadzenie nowego typu obiektów, o czym będzie mowa w \hyperref[chap:8]{rozdziale 8}.

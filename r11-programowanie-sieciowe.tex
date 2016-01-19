@@ -1,0 +1,415 @@
+\chapter{ Programowanie sieciowe. Intensywny kurs}
+\label{chap:11}
+
+  
+Możliwe, że czytasz ten tekst w oknie przeglądarki internetowej, co oznacza że przynajmniej trochę znasz się na internecie. Rozdział ten zawiera zwięzłe i powierzchowne informacje na temat sposobu działania internetu oraz jak to się ma do języka JavaScript. Głównym tematem jest zatem mówiąc krótko \textbf{programowanie sieciowe} w JavaScript. Trzy kolejne rozdziały zawierają bardziej praktyczną treść, ponieważ pokazuję w nich jak za pomocą JavaScriptu badać i modyfikować strony internetowe.
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Internet to mówiąc najprościej sieć komputerów obejmująca większość świata. Dzięki tym sieciom możliwe jest przesyłanie wiadomości między komputerami. Techniczne aspekty działania sieci są bardzo ciekawe, ale niestety temat tej książki jest całkiem inny. Wystarczy pamiętać, że w uproszczeniu jeden komputer, który będziemy nazywać serwerem\index{serwer}, czeka aż inne komputery zaczną się z nim komunikować. Gdy jakiś komputer, klient\index{klient}, nawiąże kontakt z~serwerem, następuje wymiana jakichś danych przy użyciu specjalnego języka zwanego protokołem\index{protokół}.
+
+  
+Internet służy do przesyłania wiadomości przy użyciu \emph{wielu} różnych protokołów. Istnieją protokoły do czatowania, udostępniania plików, używane przez szkodliwe programy do kontrolowania komputerów głupków, którzy je zainstalowali itd. Nas interesuje protokół używany przez sieć ogólnoświatową (World Wide Web). Protokół ten nazywa się \textbf{HTTP}\index{HTTP}, co oznacza Hyper Text Transfer Protocol (protokół przesyłania hipertekstu), i służy do pobierania stron internetowych oraz powiązanych z nimi plików.
+
+  
+W komunikacji HTTP serwer jest komputerem używanym do przechowywania strony internetowej. Klientem jest komputer, np. Twój, który prosi serwer o przesłanie mu tej strony, aby mógł ją wyświetlić. Taka prośba o~stronę nazywa się \textbf{żądaniem HTTP}\index{żądanie HTTP}.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Strony internetowe i inne pliki dostępne w internecie mają adresy URL\index{URL}, czyli uniwersalne lokalizatory zasobów (ang. Universal Resource Locators). Adres URL wygląda następująco:
+
+  
+\begin{verbatim} 
+http://acc6.its.brooklyn.cuny.edu/~phalsall/texts/taote-v3.html
+ \end{verbatim}
+  
+Adres URL składa się z trzech części. Pierwsza część, \texttt{http://}, oznacza, że ten adres używa protokołu HTTP. Istnieją jeszcze inne protokoły, np. FTP (ang. File Transfer Protocol — protokół przesyłania plików), które również mogą być używane do tworzenia adresów URL. Druga część, \texttt{acc6.its.brooklyn.cuny.edu}, określa nazwę serwera, na którym znajduje się strona. Na końcu adresu URL, \texttt{/\textasciitilde phalsal/texts/taote-v3.html}, znajduje się nazwa konkretnego pliku na serwerze.
+
+  
+Najczęściej z sieci WWW korzysta się przy użyciu przeglądarki internetowej. Gdy użytkownik wpisze adres URL albo kliknie odnośnik, przeglądarka wysyła odpowiednie żądanie HTTP do serwera. Jeśli wszystko się uda, serwer odpowie wysyłając przeglądarce plik, a ta wyświetli go użytkownikowi.
+
+  
+Jeśli plikiem tym jest dokument HTML\index{HTML}, zostanie on zaprezentowany jako strona internetowa. Krótki opis języka HTML znajduje się w \hyperref[chap:6]{rozdziale 6}, w którym dowiedzieliśmy się, że w języku tym można odwoływać się do obrazów. W \hyperref[chap:9]{rozdziale 9} dowiedziałeś się też, że strony HTML mogą zawierać elementy \texttt{<script>} ładujące kod JavaScript z plików. Przed wyświetleniem dokumentu HTML przeglądarka pobiera wszystkie dodatkowe zasoby z serwerów, aby dodać je do dokumentu.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Mimo że adres URL powinien wskazywać plik, możliwości serwerów sieciowych są większe niż proste znajdowanie plików i wysyłanie ich do klientów. Serwer może też przetwarzać pliki a nawet możliwe jest, że wybrany plik w ogóle nie istnieje, tylko na serwerze działa specjalny program, który otrzymując żądanie określonego adresu URL generuje na bieżąco odpowiedni dokument.
+
+  
+Programy przekształcające i generujące dokumenty na serwerze są wykorzystywane do tworzenia dynamicznych stron internetowych. Plik to po prostu plik i jego zawartość jest zawsze taka sama. Ale jeśli pliki są tworzone na bieżąco dla każdego żądania przez program, to u każdego użytkownika mogą wyglądać inaczej, np. ze względu na to czy użytkownik jest zalogowany lub zdefiniował jakieś ustawienia. Ponadto to bardzo ułatwia zarządzanie treścią stron internetowych — zamiast każdą nową treść wysyłać na serwer w~postaci pliku, dodaje się nowy dokument do jakiegoś centralnego magazynu, a program już wie jak go znaleźć i zaprezentować.
+
+  
+Takie rodzaj programowania nazywa się programowaniem serwerowym\index{programowanie serwerowe}. Polega na przetwarzaniu dokumentu przed jego wysłaniem do użytkownika. W większości przypadków dobrze jest też mieć program, który działa \emph{po} wysłaniu strony, gdy użytkownik już ją ogląda. To nazywa się programowaniem po stronie klienta\index{programowanie po stronie klienta}, ponieważ program działa na komputerze klienta. Programowanie po stronie klienta to główne zastosowanie JavaScriptu.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Jednak wykonywanie programów na kliencie ma pewną wadę, której nie da się wyeliminować. Nigdy nie wiadomo, jakie programy będą uruchomione na stronie, którą ma się zamiar odwiedzić. Gdyby program taki mógł wysyłać informacje z naszego komputera, niszczyć pliki albo infiltrować system, to surfowanie po internecie byłoby bardzo niebezpieczne.
+
+  
+Dlatego przeglądarki bardzo ograniczają możliwości programów JavaScript. Nie mogą one przeglądać plików użytkownika ani modyfikować niczego, co nie jest związane ze stroną internetową, z którą zostały pobrane. Takie izolowane środowisko programowe nazywa się piaskownicą\index{piaskownica} (ang. sandbox). Nie jest łatwo tak określić uprawnienia programów aby mogły w miarę swobodnie działać, a jednocześnie nie miały możliwości narobienia szkód w komputerze. Co kilka miesięcy jakiś programista JavaScript znajduje kolejne luki w~zabezpieczeniach pozwalające ominąć ograniczenia i wykonywać szkodliwe działania. Twórcy przeglądarek reagują na to modyfikacjami swoich programów tak, aby uniemożliwić wykonywanie odkrytej sztuczki i wszystko wraca do porządku. Dopóki ktoś znowu czegoś nie znajdzie…
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Jedną z pierwszych powszechnie znanych sztuczek JavaScript jest użycie metody \texttt{open}\index{window.open}\index{open} obiektu \texttt{window}. Przyjmuje ona jako argument adres URL i~otwiera nowe okno wyświetlając w nim stronę znajdującą się pod tym adresem.
+
+  
+\begin{verbatim} 
+var perry = window.open("http://www.pbfcomics.com");
+ \end{verbatim}
+  
+Jeśli włączyłeś w \hyperref[chap:6]{rozdziale 6} blokowanie wyskakujących okienek, to najprawdopodobniej okno to zostanie zablokowane. Programy blokujące wyskakujące okienka istnieją nie bez powodu. Programiści sieciowi, z zwłaszcza ci, którzy chcą przyciągnąć uwagę użytkowników do płatnych reklam, nadużywają metody \texttt{window.open} tak bardzo, że większość internautów po prostu jej nienawidzi. Jest ona jednak czasami przydatna i w tej książce również kilka razy zostanie użyta. Ogólna zasada jest taka, że skrypt nie powinien otwierać nowych okien, jeśli użytkownik wyraźnie sobie tego nie zażyczy.
+
+  
+Warto zauważyć, że ponieważ metoda \texttt{open} (podobnie jak \texttt{setTimeout} itp.) należy do obiektu \texttt{window}, część \texttt{window.} w jej wywołaniu można opuścić. Gdy funkcja jest wywoływana „normalnie”, to zostaje wywołana jako metoda na obiekcie najwyższego poziomu, którym jest \texttt{window}. Ja jednak uważam, że nazwa \texttt{open} jest trochę za ogólna i wolę pisać \texttt{window.open}, dzięki czemu od razu wiadomo, że chodzi o otwarcie okna.
+
+  
+Wartością zwracaną przez metodę \texttt{window.open} jest nowe okno. Jest ono globalnym obiektem dla skryptu działającego w tym oknie i zawiera wszystkie standardowe rzeczy, takie jak konstruktor \texttt{Object} i obiekt \texttt{Math}. Gdy jednak spróbujesz je przejrzeć, większość przeglądarek prawdopodobnie na to nie zezwoli…
+
+  
+\begin{verbatim} 
+show(perry.Math);
+// → Exception: Error: Permission denied to access property 'Math'
+\end{verbatim}
+  
+Jest to związane z działaniem w piaskownicy, o której była mowa wcześniej. Strony otwierane przez naszą przeglądarkę mogą zawierać informacje przeznaczone tylko dla nas, np. w serwisach, w których trzeba się zalogować, i dlatego nie byłoby dobrze gdyby każdy skrypt mógł je odczytać. Wyjątkiem od tej reguły są strony należące do tej samej domeny: jeśli skrypt działający na stronie \texttt{eloquentjavascript.net} otworzy inną stronę w tej samej domenie, to może z nią robić wszystko, co chce.
+
+  
+Otwarte okno można zamknąć przy użyciu metody \texttt{close}\index{window.close}\index{close}. Jeśli jeszcze sami go nie zamknęliśmy…
+
+  
+\begin{verbatim} 
+perry.close();
+\end{verbatim}
+  
+Inne rodzaje poddokumentów, np. ramki (dokumenty w dokumentach), dla programów JavaScript również są oknami i mają własne środowiska JavaScript. W istocie środowisko, do którego masz dostęp w konsoli należy do małej niewidocznej ramki ukrytej gdzieś na tej stronie — dzięki temu trochę trudniej jest przez przypadek popsuć całą stronę podczas zabawy.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Każdy obiekt okna ma własność \texttt{document}\index{document} zawierającą obiekt reprezentujący dokument wyświetlony w tym oknie. Obiekt ten zawiera np. własność \texttt{location}\index{document.location} zawierającą informacje o adresie URL dokumentu.
+
+  
+\begin{verbatim} 
+show(document.location.href);
+// → "http://www.bt4.pl/kursy/javascript/wszystko-jasne/
+//    r11-programowanie-sieciowe/"
+\end{verbatim}
+  
+Ustawiając własność \texttt{document.location.href} na inny adres URL można spowodować wczytanie przez przeglądarkę innego dokumentu. Obiekt \texttt{document} zawiera także metodę \texttt{write}\index{document.write}. Służy ona do wstawiania do dokumentu kodu HTML, który trzeba jej przekazać w postaci łańcucha. Gdy zostanie zastosowana do w pełni załadowanego dokumentu, to zastąpi go w całości otrzymanym kodem HTML, czego zazwyczaj nie chcemy. Najczęściej skrypt wywołuje ją w czasie ładowania dokumentu i wówczas kod HTML zostaje wstawiony do dokumentu w miejscu elementu \texttt{script} odpowiedzialnego za jej dodanie. Jest to prosty sposób na dodanie dynamicznych elementów do strony. Na przykład poniżej znajduje się banalnie prosty dokument pokazujący bieżącą godzinę.
+
+  
+\begin{verbatim} 
+print(timeWriter);
+var time = viewHTML(timeWriter);
+ \end{verbatim}
+  
+\begin{verbatim} 
+time.close();
+ \end{verbatim}
+  
+W \hyperref[chap:12]{rozdziale 12} znajduje się opis bardziej klarownych i wszechstronnych sposobów modyfikowania dokumentów, ale czasami metoda \texttt{document.write} jest najprostszym i najlepszym rozwiązaniem.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Kolejną dziedziną dotyczącą stron internetowych, w której język JavaScript często znajduje zastosowanie są formularze\index{formularz}. Kilka słów wyjaśnienia dla tych, którzy nie wiedzą do czego służą formularze.
+
+  
+Najprostsze żądanie HTTP to zwykła prośba do serwera o przesłanie pliku. Gdy żądany plik nie jest pasywnym plikiem lecz plikiem zwracanym przez program działający na serwerze, to czasami do żądania warto dołączyć także inne informacje niż tylko adres URL. Dlatego żądania HTTP mogą zawierać dodatkowe parametry. Oto przykład:
+
+  
+\begin{verbatim} 
+http://www.google.com/search?q=aztec%20empire
+\end{verbatim}
+  
+Po nazwie pliku (\texttt{/search}) znajduje się znak zapytania, po którym z kolei znajdują się parametry. To żądanie zawiera jeden parametr o nazwie \texttt{q} (prawdopodobnie od słowa ang. „query” czyli „zapytanie”), którego wartość to \texttt{aztec empire}. Ciąg \texttt{\%20} oznacza spację. W wartościach tych nie mogą występować niektóre znaki, np. spacje, ampersand (\&) i znaki zapytania. Są one zastępowane specjalnymi kodami składającymi się ze znaku \texttt{\%} i wartości liczbowej\footnote{Wartości kodów znakowych są określone w standardzie ASCII, w którym każdej literze alfabetu łacińskiego i symbolowi przypisana jest liczba z przedziału 0-127. Standard ten jest prekursorem standardou Unicode, o którym była mowa w \hyperref[chap:2]{rozdziale 2}.}. Znak procent w tym przypadku pełni taką samą rolę, jak ukośnik wsteczny w wyrażeniach regularnych, tylko trochę lepiej wygląda.
+
+  
+W języku JavaScript dostępne są funkcje \texttt{encodeURIComponent}\index{encodeURIComponent} i \texttt{decodeURIComponent}\index{decodeURIComponent} służące do dodawania tych kodów do łańcuchów i usuwania ich.
+
+  
+\begin{verbatim} 
+var encoded = encodeURIComponent("aztec empire");
+show(encoded);
+// → "aztec%20empire"
+show(decodeURIComponent(encoded));
+// → "aztec empire"
+\end{verbatim}
+  
+Gdy żądanie zawiera więcej parametrów, rozdziela się je znakami ampersand:
+
+  
+\begin{verbatim} 
+http://www.google.com/search?q=aztec%20empire&lang=pl
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Formularz mówiąc najprościej to narzędzie ułatwiające użytkownikom przeglądarek tworzenie takich parametryzowanych adresów URL. W formularzu znajdują się pola, np. tekstowe i wyboru, które można zaznaczać oraz obiekty pozwalające wybrać jedna z kilku wartości itp. Najczęściej dostępny jest też przycisk zatwierdzania formularza oraz niewidoczny dla użytkownika adres URL wskazujący program, który ma być użyty do przetworzenia danych z tego formularza. Kliknięcie przycisku zatwierdzania lub naciśnięcie klawisza Enter powoduje dodanie informacji wprowadzonych w formularzu do adresu URL jako parametrów i wysłanie żądania pod taki adres.
+
+  
+Poniżej znajduje się kod HTML prostego formularza:
+
+  
+\begin{verbatim} 
+<form name="userinfo" method="get" action="info.html">
+  <p>Podaj nam swoje dane, abyśmy mogli Ci wysyłać
+  spam.</p>
+  <p>Imię i nazwisko: <input type="text" name="name"/></p>
+  <p>E-Mail: <input type="text" name="email"/></p>
+  <p>Płeć: <select name="sex">
+            <option>Mężczyzna</option>
+            <option>Kobieta</option>
+            <option>Inna</option>
+          </select></p>
+  <p><input name="send" type="submit" value="Wyślij!"/></p>
+</form>
+ \end{verbatim}
+  
+Posługując się nazwą formularza można uzyskać dostęp do niego z poziomu JavaScriptu, co za chwilę zostanie pokazane. Nazwy pól determinują nazwy parametrów HTTP używanych do przechowywania ich wartości. Zatwierdzenie tego formularza może spowodować utworzenie następującego adresu URL:
+
+  
+\begin{verbatim} 
+http://planetspam.com/info.html?name=Tadek&email=tadek@zork.com&sex=Mężczyzna
+\end{verbatim}
+  
+Formularze mają jeszcze wiele innych elementów i własności, ale my skoncentrujemy się tylko na tych kilku podstawowych, ponieważ przede wszystkim interesuje nas JavaScript.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Atrybut \texttt{method="get"} w przedstawionym formularzu oznacza, że dane wpisane w polach tego formularza mają zostać zakodowane w postaci parametrów adresu URL. Istnieje też inna metoda wysyłania parametrów o~nazwie \texttt{post}. Żądanie HTTP wysłane metodą \texttt{post} oprócz adresu URL zawiera dodatkowo blok danych. Formularz wysyłany metodą \texttt{post} wstawia wartości swoich parametrów do tego bloku zamiast do adresu URL.
+
+  
+Metoda \texttt{post} lepiej nadaje się do przesyłania w formularzach dużych ilości danych, ponieważ wysyłanie ich metodą \texttt{get} spowodowałoby powstanie kilometrowych adresów URL. Jednak różnica między tymi dwiema metodami to nie tylko kwestia urody adresów. Metody \texttt{get} zwyczajowo używa się do wysyłania do serwera żądań dokumentów, natomiast \texttt{post} do wysyłania żądań wykonania czegoś na serwerze, co spowoduje tam jakąś zmianę. Na przykład żądanie listy ostatnio opublikowanych na forum internetowym wpisów wysłano by metodą \texttt{get}, natomiast żądanie dodania nowego wpisu — metodą \texttt{post}. Trzymanie się tej zasady ma uzasadnienie — automaty przeglądające sieć, np. wyszukiwarki internetowe, zazwyczaj wykonują tylko żądania \texttt{get}. Gdyby za pomocą żądań \texttt{get} dokonywano zmian na stronach,  te nieszkodliwe z założenia narzędzia mogłyby narobić wiele szkód.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Gdy przeglądarka wyświetla stronę zawierającą formularz, programy JavaScript mogą przeglądać i modyfikować wartości wprowadzane w polach tego formularza. To umożliwia wykonywanie różnych sztuczek, takich jak sprawdzanie wartości przed wysłaniem ich na serwer czy automatyczne wypełnianie niektórych pól.
+
+  
+Powyższy formularz znajduje się w pliku \texttt{example\_getinfo.html}. Otwórz go.
+
+  
+\begin{verbatim} 
+var form = window.open("/wp-content/ejs/example_getinfo.html");
+\end{verbatim}
+  
+Gdy adres URL nie zawiera nazwy serwera, to nazywa się adresem względnym\index{adres względny}. Adresy względne są przez przeglądarki interpretowane jako odnoszące się do plików znajdujących się na tym samym serwerze, co bieżący dokument. Jeśli nie zaczynają się od ukośnika, brana jest ścieżka (lub katalog) bieżącego dokumentu i do tego dodaje się podaną ścieżkę.
+
+  
+Dodamy do naszego formularza mechanizm sprawdzający poprawność jego wypełnienia, który pozwoli na jego zatwierdzenie tylko, gdy pole nazwiska nie będzie puste, a pole adresu e-mail będzie wyglądać na poprawnie wypełnione. Jako że nie chcemy już aby formularz był wysyłany natychmiast po naciśnięciu przycisku Wyślij!, zmienimy jego atrybut \texttt{type} z \texttt{submit} na \texttt{button}, dzięki czemu stanie się zwykłym przyciskiem. ― W \hyperref[chap:13]{rozdziale 13} opisana jest \emph{o wiele} lepsza metoda zrobienia tego, ale tutaj wystarczy nam takie uproszczone rozwiązanie.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\index{attach}Aby móc pracować z nowo otwartym oknem (jeśli je zamknąłeś, to otwórz je znowu), musimy powiązać je z konsolą:
+
+  
+\begin{verbatim} 
+attach(form);
+// → Powiązanie z oknem „Zarejestruj konto w Planet Junkmail”.
+\end{verbatim}
+  
+Gdy to zrobisz, kod w konsoli będzie uruchamiany w określonym oknie. Aby sprawdzić czy rzeczywiście działamy w tym oknie, co trzeba, możemy zajrzeć do własności \texttt{location} i \texttt{title} dokumentu.
+
+  
+\begin{verbatim} 
+print(document.location.href);
+// → http://www.bt4.pl/wp-content/ejs/example_getinfo.html
+print(document.title);
+// → Zarejestruj konto w Planet Junkmail
+\end{verbatim}
+  
+Ponieważ otworzyliśmy nowe środowisko, wcześniej zdefiniowane zmienne, jak np. \texttt{form}, nie są już dostępne.
+
+  
+\begin{verbatim} 
+show(form);
+\end{verbatim}
+  
+\index{detach}Aby wrócić do początkowego środowiska, możemy posłużyć się funkcją \texttt{detach} (bez argumentów). Ale wcześniej musimy dodać system sprawdzający do formularza.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Z każdym elementem HTML znajdującym się w dokumencie jest powiązany obiekt JavaScript. Obiektów tych można używać do przeglądania i manipulowania prawie wszystkimi aspektami dokumentu. W tym rozdziale będziemy używać obiektów formularzy i pól formularzy w podstawowy sposób, a w \hyperref[chap:12]{rozdziale 12} zajmiemy się nimi bardziej szczegółowo.
+
+  
+\index{document.forms}Obiekt \texttt{document} ma własność o nazwie \texttt{forms} zawierający łącza do wszystkich formularzy znajdujących się w dokumencie, wg nazw. Nasz formularz ma atrybut \texttt{name="userinfo"}, a więc można go znaleźć we własności o nazwie \texttt{userinfo}.
+
+  
+\begin{verbatim} 
+var userForm = document.forms.userinfo;
+print(userForm.method);
+// → get
+print(userForm.action);
+// → http://www.bt4.pl/wp-content/ejs/example_getinfo.html
+\end{verbatim}
+  
+W tym przypadku atrybuty \texttt{method} i \texttt{action}, które zostały przekazane do elementu HTML \texttt{form} również są dostępne jako własności obiektu JavaScript. Najczęściej tak jest, ale nie zawsze: niektóre atrybuty HTML w~JavaScript mają inne nazwy, a niektórych nie ma w ogóle. Sposób dostania się do wszystkich własności przedstawiłem w \hyperref[chap:12]{rozdziale 12}.
+
+  
+Obiekt elementu \texttt{form} ma własność \texttt{elements} odnoszącą się do obiektu zawierającego wszystkie pola formularza wg nazw.
+
+  
+\begin{verbatim} 
+var nameField = userForm.elements.name;
+nameField.value = "Kowalski";
+\end{verbatim}
+  
+Obiekty pól tekstowych mają własność \texttt{value}, przy użyciu której można odczytywać i zmieniać ich zawartość. Jeśli wykonasz powyższy kod, zauważysz, że w polu nazwiska formularza pojawi się nazwisko.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 11.1}
+\label{sec:11.1}
+  
+    
+Dzięki możliwości odczytywania wartości pól formularza możemy napisać funkcję \texttt{validInfo}, która pobiera jako argument obiekt formularza i zwraca wartość logiczną: \texttt{true} jeśli pole \texttt{name} nie jest puste, a pole \texttt{email} zawiera coś, co wygląda jak adres e-mail oraz \texttt{false} w pozostałych przypadkach. Poniżej znajduje się kod implementacji tej funkcji.
+
+  
+[\hyperref[sol:11.1]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Pozostało nam już tylko określenie czynności, jaka ma zostać wykonana, gdy ktoś kliknie przycisk ,,Wyślij!''. Na razie jego kliknięcie nic nie zmienia. Ale można to zmienić korzystając z własności \texttt{onclick}.
+
+  
+\begin{verbatim} 
+userForm.elements.send.onclick = function() {
+  alert("Klik.");
+};
+\end{verbatim}
+  
+Podobnie jak w przypadku akcji przekazywanych do funkcji \texttt{setInterval} i \texttt{setTimeout} (\hyperref[chap:8]{rozdział 8}), wartość zapisywana w \texttt{onclick}\index{onclick} (lub podobnej) własności może być funkcją lub łańcuchem kodu JavaScript. Tym razem przekazaliśmy funkcję otwierającą okienko alertu. Kliknij przycisk.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 11.2}
+\label{sec:11.2}
+  
+    
+Na zakończenie prac nad systemem weryfikacji własności \texttt{onclick} przycisku nadamy nową wartość ― funkcję sprawdzającą formularz i zatwierdzającą go, gdy jest poprawnie wypełniony oraz wyświetlającą ostrzeżenie, gdy zawiera błędy. Przyda się wiedza, że obiekty formularzy mają metodę \texttt{submit}\index{submit}, która nie przyjmuje żadnych argumentów i tylko zatwierdza formularz.
+
+  
+[\hyperref[sol:11.2]{pokaż rozwiązanie}]
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Inna sztuczka związana z polami wejściowymi formularzy i innymi elementami, które można wybierać, np. przyciskami i łączami, jest związana z metodą \texttt{focus}\index{focus}. Jeśli ma się pewność, że po wejściu na stronę użytkownik zacznie wprowadzanie danych od konkretnego pola, można automatycznie umieścić w nim kursor, aby użytkownik nie musiał w nim klikać ani przechodzić do niego w żaden inny sposób.
+
+  
+\begin{verbatim} 
+userForm.elements.name.focus();
+\end{verbatim}
+  
+Ponieważ formularz znajduje się w innym oknie, w niektórych przeglądarkach może nie być oczywiste, że coś zostało wybrane. Niektóre strony automatycznie przenoszą kursor do następnego pola, gdy poprzednie wydaje się wypełnione, np. gdy użytkownik wpisze kod pocztowy. Nie należy z tym przesadzać, ponieważ taka funkcja sprawia, że formularz zachowuje się w nieoczekiwany sposób. Jeśli użytkownik jest przyzwyczajony do zmieniania pól formularza za pomocą klawisza Tab albo źle coś wpisze i zechce to poprawić, to takie magiczne przeskakiwanie kursora może go bardzo denerwować.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\begin{verbatim} 
+detach();
+// → Usuwanie powiązania z oknem „Zarejestruj konto w Planet Junkmail”.
+\end{verbatim}
+  
+Przetestuj weryfikatora. Gdy wpiszesz prawidłowe dane i klikniesz przycisk, formularz powinien zostać zatwierdzony. Jeśli w tym czasie konsola będzie cały czas do niego podłączona, to się odłączy, ponieważ nastąpi ponowne wczytanie strony i utworzenie nowego środowiska JavaScript.
+
+  
+Jeśli jeszcze nie zamknąłeś okna formularza, to spowoduje jego zamknięcie.
+
+  
+\begin{verbatim} 
+form.close();
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Opisane powyżej czynności mogą się wydawać proste, ale uwierz mi, programowania po stronie klienta to nie jest bułka z masłem. Czasami bywa niesamowicie trudne. Dlaczego? Ponieważ programy przeznaczone do działania w komputerze klienta muszą prawidłowo działać we wszystkich popularnych przeglądarkach. A każda z ich działa trochę inaczej. Co gorsza każda taka aplikacja ma własny zbiór usterek. Niech Ci się nie wydaje, że skoro program jest własnością firmy dysponującej milionowym budżetem, to na pewno nie zawiera błędów. Dlatego my, programiści, musimy skrupulatnie testować nasze programy, znajdować błędy i opracowywać poprawne rozwiązania.
+
+  
+Możesz sobie pomyśleć: „Po prostu zgłoszę wszelkie usterki\index{błąd}, jakie znajdę do producenta przeglądarki, aby szybko je usunął i wszystko będzie w~porządku”. Niestety czeka Cię wielkie rozczarowanie. Producenci często nie spieszą się z poprawianiem błędów, a do perfekcji umiejętność tę opanował Microsoft ze swoją przeglądarką Internet Explorer, chociaż w jej najnowszych wersjach sytuacja uległa już znacznej poprawie. Błędy są i będą.
+
+  
+Ale nie zrażaj się. Jeśli masz obsesję na punkcie znajdowania nowych wyzwań, to tutaj na pewno znajdziesz ich wiele. A jeśli nie lubisz marnować czasu, to wystarczy, że będziesz unikać słabiej poznanych zakamarków funkcjonowania przeglądarek, aby nie wpaść w poważne kłopoty.

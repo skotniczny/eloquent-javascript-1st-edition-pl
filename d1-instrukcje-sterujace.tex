@@ -1,0 +1,115 @@
+\chapter{Mniej znane instrukcje sterujące}
+\label{app:1}
+
+W \hyperref[chap:2]{rozdziale 2} opisane są najczęściej używane \textbf{instrukcje sterujące}, takie jak \texttt{while}, \texttt{for} i \texttt{break}. Dla uproszczenia w rozdziale tym niektóre struktury pominąłem, ponieważ moim zdaniem są o wiele mniej przydatne. W tym dodatku znajduje się opis tych pominiętych struktur.
+
+
+\begin{center} 
+ • • • • • 
+\end{center}
+
+  
+Pierwsza z nich to instrukcja \texttt{do}\index{do}. Działa podobnie do instrukcji \texttt{while}, tylko zamiast wykonywać swoje instrukcje zero lub więcej razy wykonuje je przynajmniej raz. \textbf{Instrukcja \texttt{do}} wygląda następująco:
+
+\begin{verbatim} 
+do {
+  var answer = prompt("Powiedz „muuu”.", "");
+  print("Powiedziałeś „", answer, "”.");
+} while (answer != "muuu");
+\end{verbatim}
+  
+Aby podkreślić fakt, że warunek jest sprawdzany dopiero \emph{po} jednokrotnym wykonaniu kodu pętli, zapisuje się go za treścią główną pętli.
+
+
+\begin{center} 
+ • • • • • 
+\end{center}
+
+  
+Kolejna instrukcja to \texttt{continue}\index{continue}. Jest ona blisko spokrewniona z instrukcją \texttt{break} i w niektórych przypadkach może ją zastępować. Podczas gdy \texttt{break} powoduje \emph{wyskok} z pętli i kontynuowanie wykonywania programu od miejsca za pętlą, \texttt{continue} powoduje przejście do następnej iteracji pętli.
+
+\begin{verbatim} 
+for (var i = 0; i < 10; i++) {
+  if (i % 3 != 0)
+    continue;
+  print(i, " jest podzielne przez trzy.");
+}
+\end{verbatim}
+  
+Podobny efekt można uzyskać przy użyciu samej instrukcji \texttt{if}, ale w niektórych przypadkach instrukcja \texttt{continue} wygląda lepiej.
+
+
+\begin{center} 
+ • • • • • 
+\end{center}
+
+  
+Jeśli pętla znajduje się w innej pętli, instrukcje \texttt{break} i \texttt{continue} dotyczą tylko wewnętrznej pętli. Czasami jednak trzeba wyjść z \emph{zewnętrznej} pętli. Aby móc odwoływać się do wybranej pętli, można przypisać jej etykietę\index{etykieta}. Etykieta to nazwa (może być dowolna poprawna nazwa zmiennej) z dwukropkiem (\texttt{:}).
+
+\begin{verbatim} 
+outer: for (var sideA = 1; sideA < 10; sideA++) {
+  inner: for (var sideB = 1; sideB < 10; sideB++) {
+    var hypotenuse = Math.sqrt(sideA * sideA + sideB * sideB);
+    if (hypotenuse % 1 == 0) {
+      print("Trójkąt prostokątny o przyprostokątnych o długości ",
+            sideA, " i ", sideB, " ma przeciwprostokątną długości ",
+            hypotenuse, ".");
+      break outer;
+    }
+  }
+}
+\end{verbatim}
+
+\begin{center} 
+ • • • • • 
+\end{center}
+
+  
+Następna konstrukcja to \textbf{\texttt{switch}\index{switch}}, której można używać do wybierania bloków kodu do wykonania zależnie od jakiejś wartości. Jest to bardzo wygodna konstrukcja, ale jej składnia w języku JavaScript (zapożyczona z języka C) jest tak nieporadna i brzydka, że zamiast niej wolę używać szeregów instrukcji \texttt{if}.
+
+\begin{verbatim} 
+function weatherAdvice(weather) {
+  switch(weather) {
+    case "deszcz":
+      print("Weź parasol.");
+      break;
+    case "słońce":
+      print("Ubierz się lekko.");
+    case "chmury":
+      print("Wyjdź na dwór.");
+      break;
+    default:
+      print("Nie wiadomo, jaka jest pogoda: ", weather);
+      break;
+  }
+}
+
+weatherAdvice("słońce");
+\end{verbatim}
+  
+W bloku \texttt{switch} można wpisać dowolną liczbę klauzul \texttt{case}. Program przeskoczy do etykiety odpowiadającej wartości podanej instrukcji \texttt{switch} (porównując wartości przy użyciu operacji równoważnej z operatorem \texttt{===}, dzięki czemu nie wystąpi automatyczna konwersja typu) albo do klauzuli \texttt{default}, jeśli nie zostanie znaleziona żadna pasująca wartość. Następnie wykona znajdujące się tam instrukcje oraz \emph{będzie kontynuował} wykonywanie instrukcji kolejnych etykiet, aż napotka instrukcję \texttt{break}. W niektórych przypadkach, jak np. \texttt{"słońce"} w przykładzie, można to wykorzystać do tego, aby móc użyć wspólnego kodu dla niektórych przypadków (zalecenie wyjścia na dwór znajduje się w przypadku zarówno słonecznej jak i wietrznej pogody). Zazwyczaj konstrukcje te wymuszają tylko dodanie wielu brzydkich instrukcji \texttt{break} albo powodują problemy, gdy się o takiej instrukcji zapomni.
+
+  
+Podobnie jak pętle, instrukcje \texttt{switch} mogą mieć etykiety.
+
+
+\begin{center} 
+ • • • • • 
+\end{center}
+
+  
+Na koniec zostawiłem \textbf{słowo kluczowe \texttt{with}\index{with}}. Nigdy go nie \emph{użyłem} w~żadnym prawdziwym programie, ale widziałem je w cudzych programach i dlatego myślę, że warto je znać. Kod z użyciem słowa kluczowego \texttt{with} wygląda tak:
+
+\begin{verbatim} 
+var scope = "outside";
+var object = {name: "Ignatius", scope: "inside"};
+with(object) {
+  print("Name == ", name, ", scope == ", scope);
+  name = "Raoul";
+  var newVariable = 49;
+}
+show(object.name);
+show(newVariable);
+\end{verbatim}
+  
+Wewnątrz bloku własności obiektu przekazanego do \texttt{with} zachowują się jak zmienne. Aczkolwiek \emph{nie} są do niego dodawane jako własności nowo utworzone zmienne. Podejrzewam, że konstrukcja ta miała być przydatna w metodach, w których intensywnie wykorzystywane są własności ich obiektów. Pisanie takiej metody można zacząć od \texttt{with(this) \{...\}} i wówczas nie trzeba ciągle pisać \texttt{this}.

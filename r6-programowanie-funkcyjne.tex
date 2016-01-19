@@ -1,0 +1,1019 @@
+\chapter{Programowanie funkcyjne}
+\label{chap:6}
+
+
+Program w miarę jak się rozrasta, staje się coraz bardziej skomplikowany i~trudniejszy do zrozumienia. Oczywiście wydaje nam się, że jesteśmy niezwykle inteligentni, ale tak naprawdę jesteśmy tylko ludźmi i nawet niewielki chaos sprawia nam kłopoty. I tak to się wszystko toczy.  Praca nad czymś, czego się nie rozumie przypomina obcinanie na chybił trafił kabelków w bombie czasowej, jak pokazują w filmach. Jeśli będziesz mieć szczęście, może uda Ci się odciąć właściwy przewód — Twoje szanse rosną, gdy jesteś super bohaterem filmowym i przyjmiesz odpowiednią dramatyczną pozę — ale zawsze istnieje ryzyko, że wysadzisz wszystko w powietrze.
+
+  
+Oczywiście uszkodzenie programu zwykle nie powoduje żadnego wybuchu. Ale czasami doprowadzenie do porządku programu, w którym grzebał ktoś nie znający się na rzeczy jest tak trudne, że równie dobrze można by go było napisać od nowa.
+
+  
+Dlatego programiści zawsze starają się pisać jak najprostszy kod. Jedną z ważnych technik wykorzystywanych do tego celu jest \textbf{abstrakcja}\index{abstrakcja}. Podczas pisania programu łatwo dać się wciągnąć w szczegóły. Napotykasz jakiś niewielki problem, rozwiązujesz go, przechodzisz do następnego drobiazgu itd. Tak napisany kod czyta się jak babcine opowieści.
+
+  
+\begin{quotation}
+Tak, mój drogi, aby zrobić zupę grochową, trzeba mieć łuskany suszony groch. Potem należy go namoczyć przynajmniej przez noc, aby nie trzeba było go gotować wiele godzin. Pamiętam, jak mój niezbyt bystry syn próbował ugotować zupę grochową. Dasz wiarę, że nie namoczył grochu? Omal nie połamaliśmy sobie zębów. Wracając do sedna, gdy będziesz moczyć groch, a dla każdej osoby będziesz potrzebować około szklanki grochu, i pamiętaj, że groch wciągając wodę mocno się rozszerza i jeśli nie weźmiesz odpowiednio dużego naczynia, to z niego wyjdzie, a więc weź dużo wody, aby mogła zostać wciągnięta, zatem jak mówiłam, około szklanki suchego grochu, i po namoczeniu gotuj go w czterech szklankach wody na szklankę grochu. Gotuj na wolnym ogniu przez dwie godziny, czyli przykryj garnek i~ustaw tak ogień, aby zupa ledwo się gotowała, a potem dodaj pokrojoną cebulę, posiekanego selera, z dwie marchewki i możesz dorzucić kawałek szynki. To wszystko podgotuj jeszcze kilka minut i można jeść.
+\end{quotation}
+  
+A oto inny sposób przedstawienia tego przepisu:
+
+  
+\begin{quotation}
+Dla każdej osoby: jedna szklanka suszonego łuskanego grochu, pół pokrojonej cebuli, pół marchewki, seler i ewentualnie kawałek szynki.
+    
+Namoczyć groch przez noc, gotować na wolnym ogniu w czterech szklankach wody (na osobę), dodać warzywa i szynkę, gotować jeszcze 10 minut.
+\end{quotation}
+  
+Ta wersja jest znacznie krótsza, ale jeśli nie wiemy, jak namoczyć groch, to na pewno zrobimy to źle i dodamy za mało wody. Ale zawsze można sprawdzić, jak się namacza groch i to jest w tym wszystkim kluczowe. Jeśli założy się, że odbiorca posiada określoną wiedzę, można posługiwać się bardziej ogólnymi pojęciami i wyrażać się w sposób znacznie bardziej klarowny oraz zwięzły. Na tym mniej więcej polega abstrakcja.
+
+  
+Jak ta kulinarna przypowieść ma się do programowania? Oczywiście przepis to metafora programu. Podstawowa wiedza kucharska to w tym opowiadaniu odpowiednik funkcji i innych dostępnych programiście konstrukcji programistycznych. Na początku książki poznałeś np. instrukcję \texttt{while} ułatwiającą pisanie pętli, a w \hyperref[chap:4]{rozdziale 4} pokazałem Ci, jak pisać proste \textbf{funkcje}, aby móc tworzyć inne funkcje w łatwy sposób. Narzędzia te, niektóre dostępne jako część języka programowania, a inne pisane przez programistę, pozwalają pozbyć się wielu niepotrzebnych szczegółów z reszty programu ułatwiając pracę z tym programem.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\textbf{Programowanie funkcyjne}\index{programowanie funkcyjne}, które jest tematem tego rozdziału, pozwala tworzyć abstrakcje poprzez sprytne łączenie funkcji. Programista dysponujący zestawem podstawowych funkcji i umiejący ich używać jest znacznie bardziej efektywny od programisty, który wszystko zaczyna od początku. Niestety standardowe środowiska JavaScript zawiera wręcz nieprzyzwoicie mało niezbędnych funkcji, przez co musimy pisać własne albo, co jest zwykle lepszym rozwiązaniem, musimy korzystać z kodu napisanego przez innych programistów (więcej na ten temat dowiesz się w \hyperref[chap:9]{rozdziale 9}).
+
+  
+Istnieją jeszcze inne popularne techniki abstrakcji, wśród których jedną z~najważniejszych jest programowanie obiektowe będące tematem \hyperref[chap:8]{rozdziału 8}.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Jednym z paskudnych szczegółów, który jeśli masz choć odrobinę dobrego gustu, powinien Cię irytować jest ciągle powtarzana pętla \texttt{for} do przeglądania tablic: \texttt{for (var i = 0; i < something.length; i++)…} Czy da się tu zastosować abstrakcję?
+
+  
+Problem polega na tym, że podczas gdy większość funkcji pobiera jakieś wartości, wykonuje na nich działania, a następnie zwraca jakąś wartość, taka pętla zawiera fragment kodu, który musi wykonać. Napisanie funkcji przeglądającej tablicę i drukującej wszystkie jej elementy jest łatwe:
+
+  
+\begin{verbatim} 
+function printArray(array) {
+  for (var i = 0; i < array.length; i++)
+    print(array[i]);
+}
+ \end{verbatim}
+  
+A gdybyśmy chcieli zrobić coś innego, niż tylko drukowanie? Ponieważ „robienie czegoś” można przedstawić jako funkcję, a funkcje są także wartościami, naszą czynność możemy przekazać jako wartość funkcyjną:
+
+  
+\begin{verbatim} 
+function forEach(array, action) {
+  for (var i = 0; i < array.length; i++)
+    action(array[i]);
+}
+
+forEach(["Wampeter", "Foma", "Granfalloon"], print);
+// → Wampeter
+// → Foma
+// → Granfalloon
+\end{verbatim}
+  
+I przy użyciu funkcji anonimowej coś takiego, jak pętla \texttt{for} można napisać przy użyciu mniejszej ilości niepotrzebnych szczegółów:
+
+  
+\begin{verbatim} 
+function sum(numbers) {
+  var total = 0;
+  forEach(numbers, function (number) {
+    total += number;
+  });
+  return total;
+}
+show(sum([1, 10, 100]));
+// → 111
+\end{verbatim}
+  
+Zwróć uwagę, że zmienna \texttt{total} dzięki zasadom leksykalnego określania zakresu dostępności jest widoczna wewnątrz funkcji anonimowej. Zauważ również, że ta wersja jest niewiele krótsza od pętli \texttt{for} i na końcu zawiera niezgrabne \texttt{\});} ― klamra zamyka funkcję anonimową, nawias stanowi koniec wywołania funkcji \texttt{forEach}\index{forEach}, a średnik jest potrzebny dlatego, ponieważ to wywołanie jest instrukcją.
+
+  
+Otrzymujemy zmienną związaną z bieżącym elementem tablicy, \texttt{number}, dzięki czemu nie musimy używać notacji \texttt{numbers[i]}, a gdy tablica ta jest tworzona poprzez ewaluację jakiegoś wyrażenia, nie trzeba zapisywać jej w~zmiennej, ponieważ można ją przekazać bezpośrednio do \texttt{forEach}.
+
+  
+W „kocim” kodzie w \hyperref[chap:4]{rozdziale 4} znajduje się następujący fragment kodu:
+
+  
+\begin{verbatim} 
+var paragraphs = mailArchive[mail].split("\n");
+for (var i = 0; i < paragraphs.length; i++)
+  handleParagraph(paragraphs[i]);
+ \end{verbatim}
+  
+Teraz można to zapisać tak:
+
+  
+\begin{verbatim} 
+forEach(mailArchive[mail].split("\n"), handleParagraph);
+ \end{verbatim}
+  
+Ogólnie rzecz biorąc, użycie bardziej abstrakcyjnych (wyższego poziomu) konstrukcji powoduje, że jest więcej informacji i mniej szumu: kod w funkcji \texttt{sum} można przeczytać tak: „\emph{dla każdej liczby w tablicy numbers dodaj tę liczbę do sumy}”, zamiast… „\emph{jest zmienna, która początkowo ma wartość zero i~zmienia wartości w górę do długości tablicy o nazwie numbers i dla każdej wartości tej zmiennej szukamy odpowiedniego elementu w tablicy, a następnie dodajemy go do sumy}”.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Nasza funkcja \texttt{forEach} stanowi przykład abstrakcyjnego zapisu algorytmu przeglądania tablicy. „Luki” w tym algorytmie, w tym przypadku dotyczące tego, co robić z każdym z elementów, są wypełnione funkcjami, które są przekazywane do funkcji algorytmu.
+
+  
+Funkcje operujące na innych funkcjach nazywają się funkcjami wyższego rzędu\index{funkcja wyższego rzędu}. Operując na funkcjach mogą wyrażać czynności na całkiem nowym poziomie. Funkcja \texttt{makeAddFunction} z \hyperref[chap:3]{rozdziału 3} także jest funkcją wyższego rzędu. Zamiast pobierać wartość funkcyjną jako argument, tworzy nową funkcję.
+
+  
+Funkcji wyższego rzędu można używać do uogólnienia wielu algorytmów, których za pomocą zwykłych funkcji nie da się w łatwy sposób opisać. Mając repertuar tych funkcji do dyspozycji łatwiej jest myśleć o swoim kodzie w bardziej klarowny sposób: zamiast tworzyć zawiłą plątaninę zmiennych i~pętli możesz rozłożyć algorytm na kombinację kilku podstawowych algorytmów, które są wywoływane za pomocą nazw i nie muszą być wielokrotnie wpisywane w całości.
+
+  
+Pisanie \emph{co} chce się zrobić, zamiast \emph{jak} chce się to zrobić oznacza, że pracujemy na wyższym poziomie abstrakcji. W praktyce powstaje krótszy, klarowniejszy i przyjemniejszy kod.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Inny przydatny typ funkcji wyższego rzędu \emph{modyfikuje} otrzymaną wartość funkcyjną:
+
+  
+\begin{verbatim} 
+function negate(func) {
+  return function(x) {
+    return !func(x);
+  };
+}
+var isNotNaN = negate(isNaN);
+show(isNotNaN(NaN));
+// → false
+\end{verbatim}
+  
+Funkcja zwrócona przez \texttt{negate} przekazuje swój argument do funkcji \texttt{func}, a następnie neguje wynik. A co, gdyby funkcja, którą chcemy zanegować pobierała więcej niż jeden argument? Dostęp do argumentów przekazanych do funkcji można uzyskać dzięki tablicy \texttt{arguments}, ale jak wywołać funkcję, gdy nie wie się, ile jest argumentów?
+
+  
+Funkcje mają metodę o nazwie \texttt{apply}\index{apply}, której używa się właśnie w takich sytuacjach. Metoda ta pobiera dwa argumenty. Rola pierwszego argumentu zostanie opisana w \hyperref[chap:8]{rozdziale 8}, a na razie nadamy mu wartość \texttt{null}. Drugi argument to tablica zawierająca argumenty, do których funkcja musi zostać zastosowana.
+
+  
+\begin{verbatim} 
+show(Math.min.apply(null, [5, 6]));
+// → 5
+
+function negate(func) {
+  return function() {
+    return !func.apply(null, arguments);
+  };
+}
+\end{verbatim}
+  
+Niestety w przeglądarce Internet Explorer wiele wbudowanych funkcji, takich jak np. \texttt{alert}, nie jest \emph{prawdziwymi} funkcjami, tylko… czymś. Operatorowi \texttt{typeof} zgłaszają się jako typ \texttt{"object"} i nie mają metody \texttt{apply}. Funkcje które tworzysz są zawsze prawdziwymi funkcjami.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Przyjrzymy się jeszcze kilku innym typowym algorytmom związanym z~tablicami. Funkcja \texttt{sum} to w rzeczywistości wariant algorytmu, który zazwyczaj nazywa się \texttt{reduce}\index{reduce} (redukcja) lub \texttt{fold} (zwijanie):
+
+  
+\begin{verbatim} 
+function reduce(combine, base, array) {
+  forEach(array, function (element) {
+    base = combine(base, element);
+  });
+  return base;
+}
+
+function add(a, b) {
+  return a + b;
+}
+
+function sum(numbers) {
+  return reduce(add, 0, numbers);
+}
+ \end{verbatim}
+  
+Funkcja \texttt{reduce} sprowadza tablicę do pojedynczej wartości poprzez wielokrotne użycie funkcji, która dokonuje kombinacji elementu tablicy z wartością bazową. Dokładnie to robiła funkcja \texttt{sum}, a więc można ją skrócić używając \texttt{reduce}… z tym, że dodawanie w języku JavaScript jest operatorem, a nie funkcją, przez co najpierw musieliśmy je zaimplementować jako funkcję.
+
+  
+Powodem, dla którego funkcja \texttt{reduce} pobiera funkcję jako pierwszy, a~nie ostatni argument, jak było w funkcji \texttt{forEach} częściowo jest tradycja ― w~innych językach programowania tak się robi ― a częściowo to, że dzięki temu będziemy mogli zastosować pewną sztuczkę, o której będzie mowa pod koniec rozdziału. To oznacza, że gdy wywoływana jest funkcja \texttt{reduce}, napisanie funkcji redukującej jako funkcji anonimowej wygląda nieco dziwniej, ponieważ teraz pozostałe argumenty znajdują się za tą funkcją i podobieństwo do normalnego bloku \texttt{for} zostało całkowicie utracone.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 6.1}
+\label{sec:6.1}
+  
+    
+Napisz funkcję o nazwie \texttt{countZeroes} pobierającą tablicę liczb i zwracającą liczbę znajdujących się w niej zer. Użyj funkcji \texttt{reduce}.
+
+    
+Następnie napisz funkcję wyższego rzędu o nazwie \texttt{count} pobierającą tablicę i funkcję testową oraz zwracającą liczbę elementów w tej tablicy, dla których funkcja testowa zwróciła wartość \texttt{true}. Zaimplementuj ponownie funkcję \texttt{countZeroes} używając tej funkcji.
+
+  
+[\hyperref[sol:6.1]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Inny ogólnie przydatny podstawowy algorytm dotyczący tablic nazywa się \texttt{map}\index{map}. Jego działanie polega na przeglądaniu tablicy i stosowaniu do każdego jej elementu funkcji, podobnie jak to robi funkcja \texttt{forEach}. Jednak zamiast odrzucać wartości zwrócone przez funkcję tworzy z nich nową tablicę.
+
+  
+\begin{verbatim} 
+function map(func, array) {
+  var result = [];
+  forEach(array, function (element) {
+    result.push(func(element));
+  });
+  return result;
+}
+
+show(map(Math.round, [0.01, 2, 9.89, Math.PI]));
+// → [0, 2, 10, 3]
+\end{verbatim}
+  
+Zwróć uwagę, że pierwszy argument nazywa się \texttt{func}, a nie \texttt{function}. Jest to spowodowane tym, że \texttt{function} jest słowem kluczowym i nie może być używane jako nazwa zmiennej.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Dawno, dawno temu w górzystych lasach Pensylwanii mieszkał pewien samotnik. Większość czasu spędzał na przechadzaniu się wokół swojej góry, rozmawianiu z drzewami i żartowaniu z ptakami. Ale od czasu do czasu, gdy ulewne deszcze nie pozwalały mu wyjść chaty, a wyjący wicher sprawiał, że czuł się maleńki na tym świecie, samotnik pisał. Przelewał na papier swoje myśli z nadzieją, że kiedyś staną się większe od niego.
+
+  
+Po nieudanych próbach pisania poezji, fikcji i filozofii samotnik postanowił napisać książkę techniczną. W młodości trochę programował i uświadomił sobie, że jeśli napisze dobrą książkę na ten temat, czekają go sława i szacunek.
+
+  
+Jak postanowił, tak uczynił. Początkowo do pisania używał kory drzewnej, ale nie była ona zbyt dobrym materiałem. Poszedł więc do pobliskiej wioski i kupił sobie laptopa. Po napisaniu kilku rozdziałów doszedł do wniosku, że książkę napisze w formacie HTML, aby móc ją opublikować na swojej stronie internetowej…
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Znasz język HTML? Służy on do tworzenia stron internetowych i od czasu do czasu będzie używany w dalszej części tej książki. Dlatego dobrze by było, gdybyś znał przynajmniej jego podstawy. Jeśli jesteś dobrym uczniem, to teraz poszukasz w sieci jakiegoś dobrego wprowadzenia do HTML-a i wrócisz do dalszej lektury tej książki, gdy przeczytasz to wprowadzenie. Wiem jednak, że większość czytelników to słabi uczniowie i dlatego poniżej przedstawiam krótki przewodnik, który mam nadzieję, że wystarczy.
+
+  
+Akronim HTML\index{HTML} pochodzi od słów HyperText Mark-up Language oznaczających język znakowania hipertekstowego. Dokument HTML to plik tekstowy. Ponieważ potrzebny jest jakiś sposób na określenie struktury tego tekstu, informacje o tym, co jest nagłówkiem, który akapit jest różowy itd. wyraża się za pomocą kilku specjalnych znaków, które są czymś podobnym do ukośników w JavaScripcie. Znaki większości i mniejszości służą do tworzenia znaczników\index{znacznik (tag)}. Znacznik definiuje dodatkowe informacje o tekście dokumentu. Znacznik może być samodzielnym bytem, gdy np. oznacza miejsce, w którym na stronie ma być wyświetlony obraz albo może zawierać tekst i inne znaczniki, gdy np. jest używany do oznaczenia akapitu.
+
+  
+Niektóre znaczniki muszą znajdować się w każdym dokumencie, np. cała treść dokumentu HTML musi znajdować się między otwarciem i zamknięciem znacznika \texttt{html}. Poniżej znajduje się przykładowy dokument HTML:
+
+  
+\begin{verbatim} 
+<html>
+  <head>
+    <title>Cytat</title>
+  </head>
+  <body>
+    <h1>Cytat</h1>
+    <blockquote>
+      <p>Język, w którym myślimy i programujemy jest ściśle
+      powiązany z problemami i rozwiązaniami, jakie potrafimy
+      sobie wyobrazić jest bardzo ścisły.  Dlatego też
+      ograniczanie funkcjonalności języka w celu eliminacji
+      błędów popełnianych przez programistów jest w najlepszym
+      wypadku ryzykowne.</p>
+      <p>-- Bjarne Stroustrup</p>
+    </blockquote>
+    <p>Bjarne Stroustrup jest nie tylko twórcą języka C++,
+    ale również wnikliwym obserwatorem otaczającej go
+    rzeczywistości.</p>
+    <p>A poniżej przedstawiono fotografię strusia:</p>
+    <img src="img/ostrich.png"/>
+  </body>
+</html>
+ \end{verbatim}
+  
+Elementy mogące zawierać tekst lub inne znaczniki składają się ze znacznika otwierającego \texttt{<nazwaelementu>} i zamykającego \texttt{</nazwaelementu>}. Element \texttt{html} ma zawsze dwa elementy-dzieci: \texttt{head} i \texttt{body}. Pierwszy zawiera informacje \emph{o} dokumencie, a drugi — treść właściwą tego dokumentu.
+
+  
+Większość nazw elementów to zagadkowe skróty, np. \texttt{h1} oznacza „heading 1”, czyli największy nagłówek. Istnieją też elementy od \texttt{h2} do \texttt{h6} oznaczające kolejne poziomy nagłówków. Element \texttt{p} to akapit (ang. paragraph), a \texttt{img} służy do wstawiania obrazów (od ang. image). Element \texttt{img} nie może zawierać tekstu ani innych znaczników, ale może zawierać dodatkowe informacje, jak np. \texttt{src="img/ostrich.png"} zwane atrybutami\index{atrybut}. Ten element zawiera atrybut informujący, gdzie znajduje się obraz, który ma zostać wyświetlony na stronie.
+
+  
+Jako że znaki \texttt{<} i \texttt{>} w HTML-u mają specjalne znaczenie, nie można ich zapisywać jako zwykłego tekstu dokumentów. Aby napisać wyrażenie \texttt{5 < 10}, należałoby napisać \texttt{5 \&lt; 10}, gdzie \texttt{lt} oznacza „mniejszy niż” (od ang. less than). Zapis \texttt{\&gt;} oznacza \texttt{>}, a ponieważ w tych łańcuchach także znak ampersand ma specjalne znaczenie, aby użyć tego znaku w tekście, należy napisać \texttt{\&amp;}.
+
+  
+To są tylko podstawowe informacje na temat języka HTML, ale myślę, że do zrozumienia dalszej części tego rozdziału i kolejnych rozdziałów taka wiedza wystarczy.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Konsola JavaScript zawiera funkcję \texttt{viewHTML}, za pomocą której można przeglądać dokumenty HTML. Przedstawiony powyżej przykładowy dokument zapisałem w zmiennej \texttt{stroustrupQuote}, dzięki czemu można go obejrzeć wykonując poniższy kod:
+
+  
+\begin{verbatim} 
+viewHTML(stroustrupQuote);
+ \end{verbatim}
+  
+Jeśli w Twojej przeglądarce działa jakiś program blokujący wyskakujące okienka, to prawdopodobnie będzie on przeszkadzał w działaniu funkcji \texttt{viewHTML}, która próbuje wyświetlić dokument HTML w nowym oknie lub na nowej karcie. Dlatego jeśli masz taki program, wyłącz w nim blokowanie wyskakujących okienek dla tej strony.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Wracając do naszej opowieści, samotnik postanowił zapisać swoją książkę w formacie HTML. Początkowo wpisywał wszystkie znaczniki ręcznie bezpośrednio w rękopisie, ale od wpisywania tych wszystkich znaków większości i mniejszości rozbolały go palce, a na dodatek ciągle zapominał wpisywać \texttt{\&amp;}, gdy potrzebował \texttt{\&}. Czuł, że ma z tym problem. Później próbował pisać książkę w programie Microsoft Word, a potem zapisywać ją w formacie HTML. Niestety kod HTML tworzony przez tę aplikację był piętnaście razy większy, niż to było potrzebne. A poza tym sam Microsoft Word również mu się nie podobał.
+
+  
+W końcu znalazł takie rozwiązanie: napisał książkę jako czysty tekst stosując proste reguły oddzielania akapitów i oznaczania nagłówków. Następnie napisał program, który zamieniał ten tekst na dokładnie taki dokument HTML, jakiego potrzebował.
+
+  
+Reguły, które stosował były następujące:
+
+  \begin{enumerate}
+    \item Akapity rozdzielać pustymi wierszami.
+    \item Akapit zaczynający się od symbolu \% jest nagłówkiem. Im więcej znaków \%, tym mniejszy nagłówek.
+    \item W akapitach fragmenty tekstu między gwiazdkami to tekst wyróżniony (emfaza).
+    \item Przypisy dolne zapisywane są w klamrach.
+  \end{enumerate}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Po kilku miesiącach ciężkiej pracy samotnik miał gotowych tylko kilka akapitów. W tym momencie nadeszła straszna burza, w czasie której w chatę samotnika uderzył piorun zabijając go i grzebiąc na zawsze jego marzenia o~zostaniu pisarzem. Ze zwęglonych resztek jego laptopa udało mi się odzyskać poniższy plik:
+
+  
+\begin{verbatim} 
+% Księga programowania
+
+%% Dwa aspekty
+
+Pod powłoką maszyny tętni życie programu. Bez żadnego wysiłku
+program rozszerza się i kurczy. Elektrony harmonicznie rozpraszają
+się i grupują. Formy powstające na ekranie monitora są niczym
+zmarszczki na powierzchni wody. Esencja pozostaje niezauważalna
+poniżej.
+
+Konstruktorzy maszyny umieścili w niej procesor i pamięć. To z nich
+powstały dwa aspekty programu.
+
+Aspekt procesora jest substancją aktywną. Nazywa się Kontrolą.
+Aspekt pamięci jest substancją pasywną. Nazywa się Danymi.
+
+Dane, mimo że składają się jedynie z bitów, mogą przyjmować
+niezwykle skomplikowane formy. Kontrola składa się tylko z prostych
+instrukcji, a mimo to może wykonywać trudne zadania. Małe i banalne
+byty dają początek rzeczom wielkim i skomplikowanym.
+
+Źródłem programu są Dane. Daje on początek istnieniu Kontroli.
+Kontrola może tworzyć nowe Dane. Jedne rodzą się z innych, inne są
+bezużyteczne bez poprzednich. Jest to harmonijny cykl Danych i
+Kontroli.
+
+Same w sobie Dane i Kontrola nie mają struktury. Z tej surowej
+substancji dawni programiści wyrzeźbili swoje programy. Z czasem z
+bezkształtnej masy wyłoniły się typy danych i chaotyczna Kontrola
+została ograniczona do roli struktur sterujących i funkcji.
+
+%% Aforyzmy
+
+Gdy uczeń zapytał Fu-Tzu o naturę cyklu Danych i Kontroli, Fu-Tzu
+odparł: "Pomyśl o kompilatorze, który sam siebie kompiluje".
+
+Uczeń zapytał: "Dawni programiści używali tylko prostych maszyn i
+nie znali języków programowania, a mimo to tworzyli piękne programy.
+Dlaczego my używamy skomplikowanych maszyn i języków
+programowania?". Fu-Tzu odparł: "Dawni budowniczowie używali tylko
+patyków i gliny, a mimo to budowali piękne chaty".
+
+Pustelnik spędził dziesięć lat na pisaniu programu. Gdy skończył, z
+dumą ogłosił: "Mój program potrafi obliczyć ruch gwiazd na
+komputerze o architekturze 286 z systemem MS DOS". "Dziś nikt już
+nie ma, ani nie używa komputerów o architekturze 286 z systemem MS
+DOS" odparł Fu-Tzu.
+
+Fu-Tzu napisał niewielki program pełen globalnych stanów i
+wątpliwych skrótów. Uczeń czytając ten kod spytał: "Ostrzegałeś nas
+przed tego typu technikami, a sam je stosujesz. Dlaczego"? Fu-Tzu
+odparł: "Nie ma sensu biec po węże strażackie, kiedy dom się nie
+pali" {nie ma to być zachętą do stosowania złych praktyk
+programistycznych, a jedynie ostrzeżeniem przed fanatycznym
+trzymaniem się podstawowych zasad}.
+
+%% Mądrość
+
+Uczeń skarżył się na wyniki obliczeń cyfrowych. "Gdy obliczę
+pierwiastek z dwóch, a potem podniosę to do potęgi, wynik jest
+niedokładny"! Fu-Tzu, który go przypadkiem usłyszał, roześmiał się
+"Oto kawałek papieru. Napisz na nim dokładną wartość pierwiastka z
+dwóch".
+
+Fu-Tzu rzekł: "Aby przeciąć pestkę, trzeba użyć dużej siły. Aby
+programem rozwiązać sedno problemu, trzeba napisać dużo kodu".
+
+Tzu-li i Tzu-ssu chwalili się rozmiarem swoich najnowszych
+programów. "Dwieście tysięcy wierszy kodu", powiedział Tzu-li, "nie
+licząc komentarzy"! Tzu-ssu odrzekł: "Phi, mój ma prawie *milion*
+wierszy kodu". Fu-Tzu słysząc to, odparł: "Mój najlepszy program
+zawiera pięćset wierszy kodu". Tzu-li i Tzu-ssu słysząc te słowa
+doznali olśnienia.
+
+Uczeń siedział w bezruchu przed swoim komputerem przez kilka godzin
+i tylko groźnie spoglądał. Próbował napisać piękne rozwiązanie
+trudnego problemu, ale nic dobrego nie przychodziło mu do głowy. Fu-
+Tzu trzasnął go w tył głowy i krzyknął: "*Napiszże coś!*". Student
+zaczął pisać szpetne rozwiązanie. Gdy skończył, nagle pojął, jak
+napisać piękne rozwiązanie.
+
+%% Postęp
+
+Początkujący programista pisze programy tak, jak mrówka buduje swój
+kopiec, kawałek po kawałku bez zważania na ogólną strukturę. Jego
+programy są, jak luźne ziarnka piasku. Przez jakiś czas utrzymają
+się w całości, ale gdy za bardzo urosną, rozlecą się{odniesienie do
+wewnętrznej niespójności i duplikacji struktury w źle zorganizowanym
+kodzie.}.
+
+Gdy zda sobie sprawę z problemu, programista zacznie o wiele więcej
+czasu poświęcać na projektowanie struktury. Jego programy będą
+ściśle zbudowane, jak skalne rzeźby. Będą solidne, ale gdy będzie
+trzeba w nich coś zmienić, konieczne będzie zastosowanie
+brutalnych metod{Odniesienie do faktu, że struktura może
+ograniczać ewolucję programu.}.
+
+Mistrz programowania wie, kiedy zastosować strukturę, a kiedy
+pozostawić proste rozwiązania. Jego programy są jak glina, zwarte
+ale i plastyczne.
+
+%% Język
+
+W trakcie powstawania każdy język programowania otrzymuje składnię i
+semantykę. Składnia opisuje formę programu, semantyka zaś opisuje
+jego funkcję. Gdy składnia jest piękna, a semantyka klarowna,
+program będzie dostojny, jak pień potężnego drzewa. Gdy składnia
+jest niezgrabna, a semantyka niejasna, program jest jak krzak
+jeżyny.
+
+Tzu-ssu poproszono o napisanie programu w języku o nazwie Java, w
+którym funkcje są bardzo prymitywne. Każdego ranka zasiadając przed
+komputerem Tzu-ssu od razu zaczynał narzekać. Całymi dniami
+przeklinał i obwiniał język za wszystkie swoje niepowodzenia. Fu-Tzu
+przez pewien czas go słuchał, aż w końcu rzucił: "Każdy język ma
+swoje właściwości. Postępuj zgodnie z jego zasadami, zamiast
+próbować pisać tak, jakbyś używał innego języka".
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Na cześć dobrego samotnika chciałbym dokończyć za niego jego program generujący HTML. Do problemu tego można podjeść następująco:
+
+  \begin{enumerate}
+    \item Podziel plik na akapity wg pustych wierszy.
+    \item Usuń znaki \% z akapitów nagłówkowych i oznacz je jako nagłówki.
+    \item Przeanalizuj akapity dzieląc ich tekst na zwykły tekst, emfazę oraz przypisy dolne.
+    \item Przenieś wszystkie przypisy na dół strony, pozostawiając w ich miejscu liczby\footnote{Jak ta...}.
+    \item Każdy fragment tekstu umieść w odpowiednim elemencie HTML.
+    \item Połącz wszystko w jeden dokument HTML.
+  \end{enumerate}
+  
+To podejście nie przewiduje używania przypisów w wyróżnionym tekście i~odwrotnie. Jest to drobna wada, ale dzięki temu nasz przykładowy kod będzie prostszy. Jeśli na końcu rozdziału będziesz miał ochotę podjąć wyzwanie, będziesz mógł dodać do programu obsługę zagnieżdżonych znaczników.
+
+  
+Cały tekst jest dostępny na tej stronie poprzez wywołanie funkcji \texttt{recluseFile}.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Pierwszy krok algorytmu jest prosty. Pusty wiersz występuje wtedy, gdy dwa znaki nowego wiersza znajdują się jeden po drugim. Jeśli przypomnisz sobie metodę \texttt{split} łańcuchów, o której była mowa w \hyperref[chap:4]{rozdziale 4}, to zrozumiesz, że wystarczy napisać poniższy kod:
+
+  
+\begin{verbatim} 
+var paragraphs = recluseFile().split("\n\n");
+print("Znaleziono ", paragraphs.length, " akapitów.");
+// → Znaleziono 25 akapitów.
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 6.2}
+\label{sec:6.2}
+  
+    
+Napisz funkcję o nazwie \texttt{processParagraph} pobierającą jako argument akapit sprawdzającą, czy akapit ten jest nagłówkiem. Jeśli tak, niech usuwa znaki \% i liczy, ile ich było. Następnie niech zwraca obiekt z dwiema własnościami: \texttt{content} zawierającą tekst akapitu i \texttt{type} zawierającą element HTML, w którym ten akapit powinien zostać umieszczony. Możliwe elementy to \texttt{p} dla zwykłych akapitów, \texttt{h1} dla nagłówków z jednym znakiem \% i \texttt{hX} dla nagłówków z \texttt{X} znaków \%.
+
+    
+Przypomnę, że łańcuchy mają metodę \texttt{charAt} służącą do sprawdzania, czy zawierają określony znak.
+
+  
+[\hyperref[sol:6.2]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Tu możemy wypróbować widzianą wcześniej funkcję \texttt{map}.
+
+  
+\begin{verbatim} 
+var paragraphs = map(processParagraph,
+                     recluseFile().split("\n\n"));
+ \end{verbatim}
+  
+W ten sposób otrzymaliśmy tablicę obiektów akapitów posortowanych wg kategorii. Ale wybiegamy za daleko w przód, ponieważ pominęliśmy 3. krok algorytmu:
+
+  
+\begin{quotation}
+Przeanalizuj akapity dzieląc ich tekst na zwykły tekst, emfazę oraz przypisy dolne.
+\end{quotation}
+  
+\noindent
+Zadanie to można rozbić na następujące etapy:
+
+  \begin{enumerate}
+    \item Jeśli akapit zaczyna się od gwiazdki, pobierz wyróżniony fragment i zapisz go.
+    \item Jeśli akapit zaczyna się od otwarcia klamry, pobierz przypis i zapisz go.
+    \item W pozostałych przypadkach pobieraj tekst do napotkania wyróżnienia lub przypisu albo do końca łańcucha i zapisz to jako zwykły tekst.
+    \item Jeśli w akapicie coś pozostanie, zacznij ponownie od punktu 1.
+  \end{enumerate}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 6.3}
+\label{sec:6.3}
+  
+    
+Napisz funkcję o nazwie \texttt{splitParagraph} przyjmującą jako argument akapit i~zwracającą tablicę jego fragmentów. Wymyśl dobry sposób na reprezentację tych fragmentów.
+
+    
+Może się tu przydać metoda \texttt{indexOf}, która znajduje znak lub podłańcuch w łańcuchu i zwraca jego pozycję albo \texttt{-1}, jeśli nic nie znajdzie.
+
+    
+Ten algorytm jest skomplikowany i istnieje wiele nie całkiem poprawnych lub o wiele za długich sposobów jego realizacji. Jeśli napotkasz jakiś problem, po prostu zastanów się nad nim przez chwilę. Spróbuj napisać wewnętrzne funkcje, które wykonują mniejsze zadania składające się na algorytm.
+
+  
+[\hyperref[sol:6.3]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Możemy teraz sprawić, aby funkcja \texttt{processParagraph} również dzieliła tekst w akapitach. Moją wersję można zmodyfikować tak:
+
+  
+\begin{verbatim} 
+function processParagraph(paragraph) {
+  var header = 0;
+  while (paragraph.charAt(0) == "%") {
+    paragraph = paragraph.slice(1);
+    header++;
+  }
+
+  return {type: (header == 0 ? "p" : "h" + header),
+          content: splitParagraph(paragraph)};
+}
+ \end{verbatim}
+  
+Otrzymujemy tablicę obiektów akapitów, które z kolei zawierają tablice obiektów fragmentów. Kolejnym zadaniem jest pobranie przypisów i umieszczenie w odpowiednim miejscu odwołań do nich. Może coś takiego:
+
+  
+\begin{verbatim} 
+function extractFootnotes(paragraphs) {
+  var footnotes = [];
+  var currentNote = 0;
+
+  function replaceFootnote(fragment) {
+    if (fragment.type == "footnote") {
+      currentNote++;
+      footnotes.push(fragment);
+      fragment.number = currentNote;
+      return {type: "reference", number: currentNote};
+    }
+    else {
+      return fragment;
+    }
+  }
+
+  forEach(paragraphs, function(paragraph) {
+    paragraph.content = map(replaceFootnote,
+                            paragraph.content);
+  });
+
+  return footnotes;
+}     
+ \end{verbatim}
+  
+Funkcja \texttt{replaceFootnote} jest wywoływana na każdym fragmencie. Jeśli otrzyma fragment, który powinien pozostać na swoim miejscu, po prostu go zwraca, ale jeśli otrzyma przypis, zapisuje go w tablicy \texttt{footnotes} i zwraca odwołanie. W procesie tym wszystkie przypisy i referencje są numerowane.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+W ten sposób uzyskujemy z pliku wszystkie potrzebne nam informacje. Pozostało już tylko wygenerować kod HTML.
+
+  
+Wiele osób myśli, że doskonałym sposobem tworzenia kodu HTML jest konkatenacja łańcuchów. Gdy potrzebny jest odnośnik do witryny, w której można np. zagrać w grę Go, piszą coś takiego:
+
+  
+\begin{verbatim} 
+var url = "http://www.gokgs.com/";
+var text = "Zagraj w Go!";
+var linkText = "<a href=\"" + url + "\">" + text + "</a>";
+print(linkText);
+// → <a href="http://www.gokgs.com/">Zagraj w Go!</a>
+\end{verbatim}
+  
+(\texttt{a} to znacznik HTML służący do tworzenia łączy.) Wadą tego rozwiązania, oprócz braku elegancji, jest to, że jeśli łańcuch \texttt{text} będzie zawierał ostry nawias albo znak \&, to będzie niepoprawne. Na stronie będą dziać się dziwne rzeczy, a Ty wyjdziesz na kompletnego amatora. Tego byśmy nie chcieli. Napisanie kilku prostych funkcji generujących kod HTML jest łatwe. Dlatego też posłużymy się właśnie tą metodą.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Tajemnicą udanego generowania kodu HTML jest traktowanie dokumentu HTML jako struktury danych, a nie zwykłego tekstu. W języku JavaScript takie modele można tworzyć w bardzo prosty sposób:
+
+  
+\begin{verbatim} 
+var linkObject = {name: "a",
+                  attributes: {href: "http://www.gokgs.com/"},
+                  content: ["Zagraj w Go!"]};
+ \end{verbatim}
+  
+Każdy element HTML ma własność \texttt{name} zawierającą nazwę tego elementu. Jeśli element ma atrybuty, to dodatkowo posiada również własność \texttt{attributes} będącą obiektem zawierającym atrybuty tego elementu. Jeśli element ma treść, to posiada również własność \texttt{content} zawierającą tablicę innych elementów znajdujących się w tym elemencie. W naszym dokumencie rolę fragmentów tekstu grają łańcuchy, a więc tablica \texttt{["Zagraj w Go!"]} oznacza, że to łącze zawiera tylko jeden element będący zwykłym tekstem.
+
+  
+Bezpośrednie wpisywanie tych obiektów jest nieeleganckie, ale nie musimy tego robić. Utworzymy funkcję pomocniczą, która będzie to robić za nas:
+
+  
+\begin{verbatim} 
+function tag(name, content, attributes) {
+  return {name: name, attributes: attributes, content: content};
+}
+ \end{verbatim}
+  
+Zwróć uwagę, że ponieważ własności \texttt{attributes} i \texttt{content} elementu mogą być niezdefiniowane, gdy są nieużywane, drugi i trzeci argument tej funkcji można opuścić, jeśli nie są potrzebne.
+
+  
+Funkcja \texttt{tag} jest dość prymitywna, a więc napiszemy skróty dla często używanych typów elementów, takich jak łącza i zewnętrznej struktury prostego dokumentu:
+
+  
+\begin{verbatim} 
+function link(target, text) {
+  return tag("a", [text], {href: target});
+}
+
+function htmlDoc(title, bodyContent) {
+  return tag("html", [tag("head", [tag("title", [title])]),
+                      tag("body", bodyContent)]);
+}
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 6.4}
+\label{sec:6.4}
+  
+    
+Wróć w razie potrzeby do przykładowego dokumentu HTML i napisz funkcję o nazwie \texttt{image} pobierającą lokalizację obrazu graficznego i tworzącą element \texttt{img} HTML.
+
+  
+[\hyperref[sol:6.4]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Utworzony dokument trzeba zredukować do postaci łańcucha. A utworzenie łańcucha z tych struktur danych, które mamy jest bardzo łatwe. Trzeba tylko pamiętać o zamianie specjalnych znaków znajdujących się w tekście dokumentu…
+
+  
+\begin{verbatim} 
+function escapeHTML(text) {
+  var replacements = [[/&/g, "&amp;"], [/"/g, "&quot;"],
+                      [/</g, "&lt;"], [/>/g, "&gt;"]];
+  forEach(replacements, function(replace) {
+    text = text.replace(replace[0], replace[1]);
+  });
+  return text;
+}
+ \end{verbatim}
+  
+Metoda łańcuchów \texttt{replace} tworzy nowy łańcuch, w którym wszystkie wystąpienia wzorca podanego w pierwszym argumencie są zamienione na łańcuch podany w drugim dokumencie, a więc \texttt{"Borobudur".replace(/r/g, "k")} daje wynik \texttt{"Bokobuduk"}. Nie przejmuj się na razie składnią tego wzorca, poznasz ją dokładnie w \hyperref[chap:10]{rozdziale 10}. Funkcja \texttt{escapeHTML} wszystkie zamiany, jakie mają być dokonane ma zapisane w tablicy, dzięki czemu może je przeglądać za pomocą pętli i stosować do argumentu jedna po drugiej.
+
+  
+Podwójne cudzysłowy również są zamieniane, ponieważ funkcję tę będziemy stosować także do tekstu znajdującego się wewnątrz atrybutów HTML. Atrybuty są umieszczane w podwójnych cudzysłowach prostych i nie mogą zawierać takich cudzysłowów.
+
+  
+Czterokrotne wywołanie funkcji replace oznacza, że komputer musi cały łańcuch przejrzeć i zmodyfikować cztery razy. Jest to niewydajne rozwiązanie. Gdyby nam zależało, moglibyśmy napisać bardziej skomplikowaną wersję tej funkcji, która wyglądałaby podobnie do napisanej wcześniej funkcji \texttt{splitParagraph}, przeglądającą łańcuch tylko raz. Teraz jednak nie chce nam się tego robić, bo jesteśmy leniwi. W \hyperref[chap:10]{rozdziale 10} przedstawię o wiele lepszą metodę.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Aby zamienić obiekt elementu HTML w łańcuch, możemy użyć \textbf{funkcji rekurencyjnej}:
+
+  
+\begin{verbatim} 
+function renderHTML(element) {
+  var pieces = [];
+
+  function renderAttributes(attributes) {
+    var result = [];
+    if (attributes) {
+      for (var name in attributes) 
+        result.push(" " + name + "=\"" +
+                    escapeHTML(attributes[name]) + "\"");
+    }
+    return result.join("");
+  }
+
+  function render(element) {
+    // Węzeł tekstowy
+    if (typeof element == "string") {
+      pieces.push(escapeHTML(element));
+    }
+    // Pusty element
+    else if (!element.content || element.content.length == 0) {
+      pieces.push("<" + element.name +
+                  renderAttributes(element.attributes) + "/>");
+    }
+    // Element z treścią
+    else {
+      pieces.push("<" + element.name +
+                  renderAttributes(element.attributes) + ">");
+      forEach(element.content, render);
+      pieces.push("</" + element.name + ">");
+    }
+  }
+
+  render(element);
+  return pieces.join("");
+}
+ \end{verbatim}
+  
+Zwróć uwagę na pętlę z \texttt{in}, która pobiera własności obiektu JavaScript, aby utworzyć z nich atrybuty HTML. Zwróć też uwagę, że w dwóch miejscach tablice są używane do kumulowania łańcuchów, które następnie zostają połączone w jeden długi łańcuch. Dlaczego nie rozpocząłem po prostu od pustego łańcucha, a następnie nie dodałem do niego treści za pomocą operatora \texttt{+=}?
+
+  
+Powinieneś wiedzieć, że tworzenie nowych łańcuchów, zwłaszcza długich, jest bardzo pracochłonne. Przypomnę, że wartości łańcuchowe w JavaScripcie są niezmienne. Jeśli doda się coś do nich, tworzony jest nowy łańcuch, a stare pozostają bez zmian. Jeśli będziemy budować długi łańcuch poprzez połączenie wielu krótkich łańcuchów, to za każdym razem będzie tworzony nowy łańcuch, który zostanie „wyrzucony na śmietnik” zaraz po dodaniu następnego kawałka. Jeśli natomiast wszystkie fragmenty zapiszemy w tablicy i następnie je połączymy, to zostanie utworzony tylko \emph{jeden} długi łańcuch.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Możemy chyba wypróbować nasz generator HTML-a…
+
+  
+\begin{verbatim} 
+print(renderHTML(link("http://www.nedroid.com", "Drawings!")));
+// → <a href="http://www.nedroid.com">Drawings!</a>
+\end{verbatim}
+  
+Chyba działa.
+
+  
+\begin{verbatim} 
+var body = [tag("h1", ["Test"]),
+            tag("p", ["To jest akapit i obrazek..."]),
+            image("/wp-content/uploads/sheep.png")];
+var doc = htmlDoc("Test", body);
+viewHTML(renderHTML(doc));
+\end{verbatim}
+  
+Muszę Cię ostrzec, że to rozwiązanie nie jest idealne. W rzeczywistości otrzymany przez nas kod to XML\index{XML}, który jest podobny do HTML-a, ale różni się od niego strukturą. W prostych przypadkach, jak powyższy nie powoduje to żadnych problemów. Jednak pewne rzeczy, które są dozwolone w XML-u są zabronione w HTML-u. Rzeczy te mogą uniemożliwić przeglądarce wyświetlenie dokumentów. Gdybyśmy np. w dokumencie utworzyli pusty element \texttt{script} (służący do umieszczania kodu JavaScript na stronach), przeglądarki nie domyśliłyby się, że jest to pusty element i wszystko, co by się za nim znajdowało traktowałyby jako kod JavaScript. (Problem ten można rozwiązać wpisując jedną spację w tym elemencie, aby przestał być pusty i został utworzony dla niego znacznik zamykający.)
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 6.5}
+\label{sec:6.5}
+  
+    
+Napisz funkcję o nazwie \texttt{renderFragment} i przy jej użyciu zaimplementuj funkcję o nazwie \texttt{renderParagraph} pobierającą obiekt akapitu (z odfiltrowanymi już przypisami) i zwracającą poprawny element HTML (którym może być akapit albo nagłówek w zależności od własności \texttt{type} otrzymanego obiektu).
+
+    
+Funkcja ta może być przydatna do tworzenia odwołań do przypisów:
+
+    
+\begin{verbatim} 
+function footnote(number) {
+  return tag("sup", [link("#footnote" + number,
+                          String(number))]);
+}
+\end{verbatim}
+    
+Element \texttt{sup} służy do wyświetlania treści w indeksie górnym, tzn. trochę mniejszą czcionką i nieco wyżej niż normalna treść. Celem łącza będzie coś w rodzaju \texttt{"\#footnote1"}. Odnośniki, na końcu których znajduje się znak \# odnoszą się do „kotwic” w obrębie strony. W tym przypadku wykorzystamy tę technikę do tworzenia łączy, których kliknięcie będzie powodować przejście na dół strony do przypisów.
+
+    
+Element emfazy nazywa się \texttt{em} i można renderować zwykły tekst bez dodatkowych znaczników.
+
+  
+[\hyperref[sol:6.5]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Prawie skończyliśmy. Pozostało jeszcze tylko napisanie funkcji do renderowania przypisów. Aby odnośniki typu \texttt{"\#footnote1"} działały, każdy przypis musi mieć kotwicę. W HTML-u kotwice można oznaczać za pomocą elementu \texttt{a}, który jest też używany do tworzenia łączy. Tylko że w tym przypadku zamiast atrybutu \texttt{href} będzie miał atrybut \texttt{name}.
+
+  
+\begin{verbatim} 
+function renderFootnote(footnote) {
+  var number = "[" + footnote.number + "] ";
+  var anchor = tag("a", [number], {name: "footnote" + footnote.number});
+  return tag("p", [tag("small", [anchor, footnote.content])]);
+}
+ \end{verbatim}
+  
+Poniżej znajduje się funkcja pobierającą plik w określonym formacie i~tytuł dokumentu i zwracająca dokument HTML:
+
+  
+\begin{verbatim} 
+function renderFile(file, title) {
+  var paragraphs = map(processParagraph, file.split("\n\n"));
+  var footnotes = map(renderFootnote,
+                      extractFootnotes(paragraphs));
+  var body = map(renderParagraph, paragraphs).concat(footnotes);
+  return renderHTML(htmlDoc(title, body));
+}
+
+viewHTML(renderFile(recluseFile(), "Księga programowania"));
+ \end{verbatim}
+  
+Metoda \texttt{concat}\index{concat} tablic służy do łączenia jednej tablicy z inną, podobnie jak operator \texttt{+} łączy łańcuchy.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+W dalszych rozdziałach podstawowe funkcje wyższego rzędu \texttt{map} i \texttt{reduce} będą cały czas dostępne i używane w przykładach. Od czasu do czasu będą dodawane do nich kolejne przydatne narzędzia. W \hyperref[chap:9]{rozdziale 9} zastosujemy bardziej uporządkowane podejście do tworzenia zestawu „podstawowych” funkcji.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Gdy używa się funkcji wyższego rzędu, często irytującym problemem jest to, że operatory w JavaScripcie nie są funkcjami. W kilku miejscach potrzebne nam były funkcje \texttt{add} i \texttt{equals}. Ciągłe przepisywanie ich jest uciążliwe. Dlatego od tej pory przyjmiemy, że istnieje obiekt o nazwie \texttt{op}, który zawiera następujące funkcje:
+
+  
+\begin{verbatim} 
+var op = {
+  "+": function(a, b){return a + b;},
+  "==": function(a, b){return a == b;},
+  "===": function(a, b){return a === b;},
+  "!": function(a){return !a;}
+  /* itd. */
+};
+ \end{verbatim}
+  
+Dzięki temu możemy napisać \texttt{reduce(op["+"], 0, [1, 2, 3, 4, 5])}, aby zsumować tablicę. Ale co, jeśli potrzebujemy czegoś takiego, jak \texttt{equals} albo \texttt{makeAddFunction} i jeden z argumentów ma już wartość? W takim przypadku wracamy do pisania nowej funkcji.
+
+  
+W tego typu sytuacjach przydatne jest tzw. częściowe wywołanie\index{częściowe wywołanie} (ang. partial application). Chcemy utworzyć funkcję, która niektóre swoje argumenty zna z góry, a dodatkowe, które zostaną jej przekazane wstawia za tymi znanymi. Można to osiągnąć dzięki kreatywnemu podejściu do użycia metody \texttt{apply} funkcji:
+
+  
+\begin{verbatim} 
+function asArray(quasiArray, start) {
+  var result = [];
+  for (var i = (start || 0); i < quasiArray.length; i++)
+    result.push(quasiArray[i]);
+  return result;
+}
+
+function partial(func) {
+  var fixedArgs = asArray(arguments, 1);
+  return function() {
+    return func.apply(null, fixedArgs.concat(asArray(arguments)));
+  };
+}
+ \end{verbatim}
+  
+Chcemy, aby było możliwe wiązanie wielu argumentów na raz, a więc funkcja \texttt{asArray} jest potrzebna do robienia normalnych tablic z obiektów \texttt{arguments}. Kopiuje ich zawartość do prawdziwej tablicy, na której można użyć metody \texttt{concat}. Ponadto przyjmuje drugi, opcjonalny, argument, dzięki któremu można opuścić kilka argumentów z początku.
+
+  
+Zauważ też, że zmienna \texttt{arguments} zewnętrznej funkcji (\texttt{partial}) musi zostać zapisana pod inną nazwą, ponieważ w przeciwnym razie wewnętrzna funkcja jej nie znajdzie ― funkcja ta ma własną zmienną o nazwie \texttt{arguments}, która zasłoni zmienną o tej samej nazwie w funkcji zewnętrznej.
+
+  
+Teraz instrukcję \texttt{equals(10)} można zastąpić instrukcją \texttt{partial(op["=="], 10)}, a więc nie trzeba używać specjalnej funkcji \texttt{equals}. I można robić takie rzeczy:
+
+  
+\begin{verbatim} 
+show(map(partial(op["+"], 1), [0, 2, 4, 6, 8, 10]));
+// → [1, 3, 5, 7, 9, 11]
+\end{verbatim}
+  
+Powodem, dla którego funkcja \texttt{map} pobiera swój argument funkcyjny przed argumentem tablicowym jest to, że często przydaje się częściowe wywołanie tej funkcji poprzez przekazanie jej funkcji. W ten sposób funkcja zamiast na pojedynczej wartości może działać na tablicy wartości. Gdybyśmy np. mieli tablicę tablic liczb i chcielibyśmy je wszystkie podnieść do kwadratu, napisalibyśmy to:
+
+  
+\begin{verbatim} 
+function square(x) {return x * x;}
+
+show(map(partial(map, square), [[10, 100], [12, 16], [0, 1]]));
+// → [[100, 10000], [144, 256], [0, 1]]
+\end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Ostatnia sztuczka, która może Ci się przydać przy kombinowaniu funkcji to złożenie funkcji\index{złożenie funkcji}. Na początku tego rozdziału pokazałem funkcję \texttt{negate}, która stosowała operator logicznego \emph{nie} do wyniku wywołania funkcji:
+
+  
+\begin{verbatim} 
+function negate(func) {
+  return function() {
+    return !func.apply(null, arguments);
+  };
+}
+ \end{verbatim}
+  
+Jest to specjalny przypadek ogólnego wzorca: wywołaj funkcję A i zastosuj do jej wyniku funkcję B. Złożenie\index{złożenie} funkcji to znane pojęcie matematyczne. Można je wyrazić za pomocą funkcji wyższego rzędu następująco:
+
+  
+\begin{verbatim} 
+function compose(func1, func2) {
+  return function() {
+    return func1(func2.apply(null, arguments));
+  };
+}
+
+var isUndefined = partial(op["==="], undefined);
+var isDefined = compose(op["!"], isUndefined);
+show(isDefined(Math.PI));
+// → true
+show(isDefined(Math.PIE));
+// → false
+ \end{verbatim}
+  
+Definiujemy tu nowe funkcje w ogóle nie używając słowa kluczowego \texttt{function}. Technika ta może być przydatna, gdy trzeba utworzyć prostą funkcję do przekazania np. funkcji \texttt{map} albo \texttt{reduce}. Jeśli jednak funkcja jest dłuższa, to zazwyczaj krótszy (nie mówiąc już o lepszej wydajności) kod uzyska się pisząc zwykłą funkcję przy użyciu słowa kluczowego \texttt{function}.

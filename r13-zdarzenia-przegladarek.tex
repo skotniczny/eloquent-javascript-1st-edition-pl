@@ -1,0 +1,714 @@
+\chapter{ Zdarzenia przeglądarek}
+\label{chap:13}
+
+  
+Aby móc dodać do strony ciekawe funkcje sama możliwość przeglądania i~modyfikowania dokumentu nie wystarczy. Musimy jeszcze umieć sprawdzać, co robi użytkownik i reagować na jego działania. Do tego celu będziemy używać tzw. \textbf{procedur obsługi zdarzeń}\index{procedura obsługi zdarzenia}. Zdarzeniami są naciśnięcia klawiszy, naciśnięcia przycisków myszy, a ruch ruch myszy może być nawet traktowany jako seria zdarzeń. W \hyperref[chap:11]{rozdziale 11} dodaliśmy do przycisku własność \texttt{onclick}, aby wykonać jakieś działania, gdy zostanie kliknięty. To była prosta procedura obsługi zdarzeń.
+
+  
+Zasada działania zdarzeń przeglądarek jest bardzo prosta. Procedury obsługi zdarzeń można rejestrować zarówno dla wybranych typów zdarzeń jak i węzłów DOM. Gdy ma miejsce jakieś zdarzenie\index{zdarzenie}, następuje wywołanie procedury do jego obsługi (jeśli została zdefiniowana). W przypadku niektórych zdarzeń sama wiedza, że wystąpiły nie wystarcza. Dotyczy to np. naciśnięć klawiszy, w których to przypadku zazwyczaj chce się też wiedzieć, który konkretnie klawisz został naciśnięty. Do przechowywania tych informacji każde zdarzenie tworzy obiekt zdarzenia\index{obiekt zdarzenia}, który jest do dyspozycji procedury obsługującej.
+
+  
+Należy wiedzieć, że podczas gdy w jednym czasie może dziać się wiele zdarzeń, to procedura obsługi może działać tylko jedna na raz. Jeśli w danym momencie działa jakiś inny kod JavaScript, przeglądarka czeka aż skończy zanim wywoła następną procedurę. Dotyczy to także kodu uruchamianego na inne sposoby, np. poprzez metodę \texttt{setTimeout}. W żargonie programistycznym mówi się, że JavaScript w przeglądarkach jest jednowątkowy\index{jednowątkowość}, tzn. nie może się zdarzyć, aby działały dwa wątki\index{wątek} na raz. W większości przypadków jest to korzystne. Gdy wiele rzeczy dzieje się na raz, można łatwo popełnić błąd i~otrzymać dziwne wyniki.
+
+  
+Nieobsłużone zdarzenie może zostać „przepchnięte” poprzez drzewo DOM. Oznacza to, że jeśli np. użytkownik kliknie łącze w akapicie, najpierw zostaną wywołane procedury związane z tym łączem. Jeśli z łączem nie jest związana żadna procedura albo procedury je obsługujące nie powiadomią o~zakończeniu obsługiwania zdarzenia, wypróbowywane są procedury akapitu będącego rodzicem tego łącza. Następnie przychodzi kolej na procedury dla \texttt{document.body}. Jeśli ostatecznie nie zostanie znaleziona żadna odpowiednia procedura JavaScript, zdarzenie jest obsługiwane przez przeglądarkę. W~przypadku odnośnika oznacza to przejście pod określony adres.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Jak widać \textbf{obsługa zdarzeń} nie jest skomplikowana. Jedyna trudność z nimi związana polega na tym, że przeglądarki mimo iż mają mniej więcej podobną funkcjonalność, obsługują ją poprzez różne interfejsy. Jak zwykle najgorsza jest przeglądarka Internet Explorer, która nie trzyma się standardów stosowanych w pozostałych przeglądarkach. Po niej jest Opera, która nie obsługuje kilku bardzo przydatnych zdarzeń, takich jak zdarzenie \texttt{onunload} uruchamiane przy opuszczaniu strony i czasami zwraca mylne informacje dotyczące zdarzeń klawiszy.
+
+  
+Jeśli chodzi o \textbf{zdarzenia}, to zwykle wykonuje się w  związku z nimi cztery czynności.
+
+  \begin{itemize}
+    \item Rejestracja procedury obsługi zdarzeń.
+    \item Pobranie obiektu zdarzenia.
+    \item Pobranie informacji z tego obiektu.
+    \item Zasygnalizowanie, że zdarzenie zostało obsłużone.
+  \end{itemize}
+  
+Żadnej z tych czynności nie wykonuje się tak samo we wszystkich najważniejszych przeglądarkach.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Naszym poligonem do ćwiczeń obsługi zdarzeń będzie dokument z przyciskiem i polem tekstowym. Pozostaw to okno otwarte (i związane) na czas studiowania całego rozdziału.
+
+  
+\begin{verbatim} 
+attach(window.open("/wp-content/ejs/example_events.html"));
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Pierwszą czynność, rejestrację procedury, można wykonać ustawiając własność \texttt{onclick} elementu (albo \texttt{onkeypress} itd.). Ta metoda działa we wszystkich przeglądarkach tak samo, ale ma wadę — do elementu można przywiązać tylko jedną procedurę. Zazwyczaj jedna procedura wystarczy, ale czasami, zwłaszcza gdy program współpracuje z innymi programami (które także mogą dodawać swoje procedury), może to być uciążliwe.
+
+  
+\index{attachEvent}W przeglądarce Internet Explorer procedurę obsługi kliknięć przycisku można zdefiniować tak:
+
+  
+\begin{verbatim} 
+$("button").attachEvent("onclick", function(){print("Klik!");});
+ \end{verbatim}
+  
+\index{addEventListener}Jednak w pozostałych przeglądarkach robi się to tak:
+
+  
+\begin{verbatim} 
+$("button").addEventListener("click", function(){print("Klik!");},
+                             false);
+ \end{verbatim}
+  
+Zwróć uwagę na opuszczenie fragmentu \texttt{on} w drugim przypadku. Trzeci argument metody \texttt{addEventListener}, \texttt{false}, oznacza, że zdarzenie ma „przechodzić” przez drzewo DOM w normalny sposób. Wartość \texttt{true} w tym miejscu oznaczałaby nadanie tej procedurze priorytetu wyższego niż mają procedury znajdujące się „pod” nią, ale ponieważ Internet Explorer tego nie obsługuje, jest to rzadko wykorzystywane.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 13.1}
+\label{sec:13.1}
+  
+    
+Napisz funkcję o nazwie \texttt{registerEventHandler} opakowującą niezgodności tych dwóch modeli. Funkcja ta przyjmuje trzy argumenty: węzeł DOM, do którego ma być przywiązana procedura, nazwę typu zdarzenia, np. \texttt{"click"} albo \texttt{"keypress"} oraz funkcję obsługującą.
+
+    
+Aby dowiedzieć się, która metoda powinna zostać wywołana, należy poszukać tych metod ― jeżeli węzeł DOM ma metodę o nazwie \texttt{attachEvent}, to można przyjąć, że jest to odpowiednia metoda. Warto podkreślić, że jest to o wiele lepsze rozwiązanie od sprawdzania wprost, czy dana przeglądarka to Internet Explorer. Taki kod będzie działał także wówczas, gdy pojawi się nowa przeglądarka oparta na modelu Internet Explorera jak i gdy Internet Explorer nagle zacznie spełniać wymogi standardów. Oba scenariusze są mało prawdopodobne, ale przecież stosowanie inteligentnych rozwiązań nie boli.
+
+  
+[\hyperref[sol:13.1]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Zdarzenia usuwa się bardzo podobnie, jak je dodaje, tylko używa się do tego metod \texttt{detachEvent}\index{detachEvent} i \texttt{removeEventListener}\index{removeEventListener}. Zwróć uwagę, że aby usunąć procedurę obsługi zdarzenia, trzeba mieć dostęp do funkcji, którą się z nim związało.
+
+  
+\begin{verbatim} 
+function unregisterEventHandler(node, event, handler) {
+  if (typeof node.removeEventListener == "function")
+    node.removeEventListener(event, handler, false);
+  else
+    node.detachEvent("on" + event, handler);
+}
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Wyjątków zgłaszanych przez procedury obsługi zdarzeń z przyczyn technicznych nie można przechwytywać w konsoli. Dlatego są obsługiwane przez przeglądarkę, co może oznaczać, że są ukryte w jakiejś „konsoli błędów” albo powodują pojawianie się wyskakującego okienka. Jeśli procedura obsługi zdarzenia nie działa, przyczyną może być błąd powodujący jej ciche anulowanie.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Większość przeglądarek obiekty zdarzeń\index{obiekt zdarzenia} przekazuje procedurom jako argument. Internet Explorer zapisuje je w zmiennej najwyższego poziomu o nazwie \texttt{event}\index{event}. Przeglądając kod w języku JavaScript niejednokrotnie natkniesz się na fragmenty typu \texttt{event || window.event}, który pobiera lokalną zmienną \texttt{event} lub, jeśli taka zmienna nie jest  zdefiniowana, zmienną najwyższego poziomu o takiej nazwie.
+
+  
+\begin{verbatim} 
+function showEvent(event) {
+  show(event || window.event);
+}
+
+registerEventHandler($("textfield"), "keypress", showEvent);
+ \end{verbatim}
+  
+Wpisz kilka znaków w polu, spójrz na obiekty i zamknij je:
+
+  
+\begin{verbatim} 
+unregisterEventHandler($("textfield"), "keypress", showEvent);
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\index{onmousedown}\index{onmouseup}\index{onclick}\index{ondblclick}Gdy użytkownik kliknie myszą, wygenerowane zostaną trzy zdarzenia. Pierwsze z nich to \texttt{mousedown}\index{mousedown}, zgłaszane w momencie naciśnięcia przycisku. Drugie to \texttt{mouseup}\index{mouseup} wygenerowane w momencie zwolnienia przycisku. Trzecie zdarzenie to \texttt{click}\index{click}, które wskazuje, że coś zostało kliknięte. Jeśli ten szereg zdarzeń ma miejsce dwa razy w krótkim czasie, generowane jest dodatkowo zdarzenie \texttt{dblclick}\index{dblclick} (podwójne kliknięcie). Zdarzenia \texttt{mousedown} i \texttt{mouseup} nie muszą występować od razu jedno po drugim ― czasami użytkownik nieco dłużej przytrzymuje wciśnięty przycisk myszy.
+
+  
+Gdy wiąże się procedurę obsługi zdarzeń np. z przyciskiem, to zazwyczaj wystarczającą informacją jest sama wiadomość, że przycisk ten został kliknięty. Z drugiej strony, jeżeli procedura zostanie powiązana z węzłem mającym dzieci, to kliknięcia tych węzłów potomnych będą propagowane do rodzica i~wówczas zazwyczaj chcemy wiedzieć, który element potomny został kliknięty. Dlatego obiekty zdarzeń mają własność o nazwie \texttt{target}\index{target} lub \texttt{srcElement}, w~zależności od przeglądarki.
+
+  
+\index{scrollTop}\index{scrollLeft}Kolejną interesującą informacją są dokładne współrzędne miejsca, w którym nastąpiło kliknięcie. Obiekty zdarzeń dotyczących myszy zawierają własności \texttt{clientX}\index{clientX} i \texttt{clientY}\index{clientY} określające współrzędne \texttt{x} i \texttt{y} (w pikselach) kursora na ekranie. Ponieważ jednak dokumenty można przewijać, współrzędne te niewiele nam mówią o tym, w którym miejscu dokumentu znajduje się kursor myszy. Dlatego w niektórych przeglądarkach dostępne są jeszcze własności \texttt{pageX}\index{pageX} i \texttt{pageY}\index{pageY}, ale niestety jedna (zgadnij która) ich nie ma. Na szczęście we własnościach \texttt{document.body.scrollLeft} i \texttt{document.body.scrollTop} można dowiedzieć się o ile pikseli dokument został przewinięty.
+
+  
+Poniższa procedura jest związana z całym dokumentem i przechwytuje wszystkie kliknięcia myszy, aby wyświetlić informacje o nich.
+
+  
+\begin{verbatim} 
+function reportClick(event) {
+  event = event || window.event;
+  var target = event.target || event.srcElement;
+  var pageX = event.pageX, pageY = event.pageY;
+  if (pageX == undefined) {
+    pageX = event.clientX + document.body.scrollLeft;
+    pageY = event.clientY + document.body.scrollTop;
+  }
+
+  print("Współrzędne miejsca, w którym kliknięto: ", pageX, ", ", pageY,
+        ". Wewnątrz elementu:");
+  show(target);
+}
+registerEventHandler(document, "click", reportClick);
+ \end{verbatim}
+  
+Usuwamy procedurę:
+
+  
+\begin{verbatim} 
+unregisterEventHandler(document, "click", reportClick);
+ \end{verbatim}
+  
+Oczywiście nie w każdej procedurze obsługi zdarzeń wykonuje się tyle różnych testów. Za chwilę, gdy poznasz jeszcze kilka przypadków niezgodności między przeglądarkami, napiszemy funkcję normalizującą obiekty zdarzeń tak, aby działały jednakowo we wszystkich aplikacjach.
+
+  
+Czasami można też sprawdzić, który przycisk myszy został kliknięty. Służą do tego własności \texttt{which}\index{which} i \texttt{button}\index{button} obiektów zdarzeń. Niestety nie można na tej metodzie polegać — niektóre przeglądarki udają, że mysz ma tylko jeden przycisk, inne kliknięcia prawym przyciskiem myszy traktują jako kliknięcia lewym przyciskiem przy wciśniętym klawiszu Ctrl itd.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\index{onmousemove}\index{onmouseover}\index{onmouseout}Oprócz kliknięć, do zdarzeń myszy zalicza się także ruch. Zdarzenie \texttt{mousemove}\index{mousemove} węzła drzewa DOM jest wyzwalane, gdy nad reprezentowanym przez niego elementem znajduje się kursor będący w ruchu. Istnieją też zdarzenia \texttt{mouseover}\index{mouseover} i \texttt{mouseout}\index{mouseout} wyzwalane w momencie, gdy kursor „wchodzi” na węzeł lub z niego „schodzi”. W przypadku zdarzeń ostatniego z wymienionych typów własność \texttt{target} (lub \texttt{srcElement}) wskazuje węzeł, dla którego dane zdarzenie zostało wyzwolone, natomiast własność \texttt{relatedTarget}\index{relatedTarget} (lub \texttt{toElement} albo \texttt{fromElement}) określa węzeł, z którego kursor „przyszedł” (w przypadku \texttt{mouseover}) lub na który „przeszedł” (dla \texttt{mouseout}).
+
+  
+Zdarzenia \texttt{mouseover} i \texttt{mouseout} mogą sprawiać problemy, gdy są zarejestrowane na elemencie mającym węzły potomne. Zdarzenia wyzwalane w~węzłach potomnych są przekazywane do elementu nadrzędnego, przez co zdarzenie \texttt{mouseover} zostanie wyzwolone, gdy kursor znajdzie się nad którymkolwiek z węzłów potomnych elementu. Do wykrywania (i ignorowania) takich zdarzeń można używać własności \texttt{target} i \texttt{relatedTarget}.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\index{onkeydown}\index{onkeyup}\index{onkeypress}Dla każdego naciśnięcia klawisza generowane są trzy zdarzenia: \texttt{keydown}\index{keydown}, \texttt{keyup}\index{keyup} oraz \texttt{keypress}\index{keypress}. Ogólnie rzecz biorąc do sprawdzania, który klawisz został naciśnięty, aby np. wykonać jakieś działania w reakcji na naciśnięcia strzałek, wystarczą dwa pierwsze z tych zdarzeń. Natomiast zdarzenie \texttt{keypress} pozwala dowiedzieć się, jaki znak został wpisany za pomocą klawiatury. W zdarzeniach \texttt{keyup} i \texttt{keydown} zwykle nie ma żadnych informacji co do znaku naciśniętego klawisza, a Internet Explorer dla klawiszy specjalnych, takich jak np. strzałki, w ogóle nie generuje zdarzenia \texttt{keypress}.
+
+  
+Dlatego też dowiedzenie się, który klawisz został naciśnięty może być nie lada wyzwaniem. Dla zdarzeń \texttt{keydown} i \texttt{keyup} obiekt zdarzenia zawiera  własność \texttt{keyCode}\index{keyCode} zawierającą liczbę. W większości przypadków dzięki tym kodom można dowiedzieć się który klawisz został naciśnięty bez względu na przeglądarkę. Aby sprawdzić jaki kod odpowiada każdemu z klawiszy, można wykonać prosty eksperyment…
+
+  
+\begin{verbatim} 
+function printKeyCode(event) {
+  event = event || window.event;
+  print("Naciśnięto klawisz ", event.keyCode, ".");
+}
+
+registerEventHandler($("textfield"), "keydown", printKeyCode);
+ \end{verbatim}
+  
+\begin{verbatim} 
+unregisterEventHandler($("textfield"), "keydown", printKeyCode);
+ \end{verbatim}
+  
+W większości przeglądarek każdemu \emph{fizycznie dostępnemu} klawiszowi na klawiaturze odpowiada jeden kod. Jednak w Operze dla niektórych klawiszy mogą być generowane różne kody w zależności od tego, czy podczas naciskania klawisza był jednocześnie wciśnięty klawisz Shift. Co gorsza niektóre z tych kodów zwracanych dla klawiszy z naciśniętym Shiftem pokrywają się z kodami innych klawiszy, np. kombinacja Shift+9, która na większości klawiatur służy do wpisywania otwarcia nawiasu ma taki sam kod, jak strzałka w dół, przez co trudno te dwa klawisze od siebie odróżnić. Jeśli istnieje ryzyko, że spowoduje to problemy w programach, można naciśnięcia klawiszy z Shiftem zignorować.
+
+  
+Aby dowiedzieć się czy podczas \textbf{zdarzenia klawiatury} lub myszy był wciśnięty klawisz Shift, Ctrl lub Alt, można posłużyć się własnościami \texttt{shiftKey}\index{shiftKey}, \texttt{ctrlKey}\index{ctrlKey} i \texttt{altKey}\index{altKey} obiektu zdarzenia.
+
+  
+W przypadku zdarzeń \texttt{keypress} chcemy wiedzieć, który znak został wpisany. Obiekt zdarzenia ma własność \texttt{charCode}\index{charCode}, która, jeśli mamy szczęście, powinna zawierać numer Unicode\index{Unicode} wpisanego tego znaku. Kod ten można przekonwertować na jednoznakowy łańcuch za pomocą metody \texttt{String.fromCharCode}\index{String.fromCharCode}. Niestety w niektórych przeglądarkach brak jest tej własności albo jest ona zdefiniowana jako \texttt{0}, a kod znaku jest przechowywany we własności \texttt{keyCode}\index{keyCode}.
+
+  
+\begin{verbatim} 
+function printCharacter(event) {
+  event = event || window.event;
+  var charCode = event.charCode;
+  if (charCode == undefined || charCode === 0)
+    charCode = event.keyCode;
+  print("Znak „", String.fromCharCode(charCode), "”");
+}
+
+registerEventHandler($("textfield"), "keypress", printCharacter);
+ \end{verbatim}
+  
+\begin{verbatim} 
+unregisterEventHandler($("textfield"), "keypress", printCharacter);
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Procedura obsługi zdarzenia nie może zatrzymać zdarzenia, którego dotyczy. Można to zrobić na dwa różne sposoby. Można uniemożliwić przekazanie zdarzenia do węzłów nadrzędnych i zdefiniowanych dla nich procedur obsługi zdarzeń albo można wyłączyć standardową reakcję przeglądarki na określone zdarzenie. Należy zauważyć, że przeglądarki nie zawsze działają zgodnie z oczekiwaniami, tzn. wyłączenie standardowej reakcji na naciśnięcie niektórych skrótów klawiszowych w wielu przeglądarkach nie spowoduje wyłączenia normalnego efektu naciśnięcia tych klawiszy.
+
+  
+W większości przeglądarek propagację zdarzenia można zatrzymać za pomocą metody \texttt{stopPropagation}\index{stopPropagation} obiektu zdarzenia, a domyślne działanie wyłącza się przy użyciu metody \texttt{preventDefault}\index{preventDefault}. W Internet Explorerze należy odpowiednio ustawić własność \texttt{cancelBubble}\index{cancelBubble} tego obiektu na \texttt{true}, a własność \texttt{returnValue}\index{returnValue} na \texttt{false}.
+
+  
+To była ostatnia niezgodność między przeglądarkami, o której chciałem napisać w tym rozdziale. W końcu możemy napisać obiecywaną funkcję normalizującą i przejść do ciekawszych zagadnień.
+
+  
+\begin{verbatim} 
+function normaliseEvent(event) {
+  if (!event.stopPropagation) {
+    event.stopPropagation = function() {this.cancelBubble = true;};
+    event.preventDefault = function() {this.returnValue = false;};
+  }
+  if (!event.stop) {
+    event.stop = function() {
+      this.stopPropagation();
+      this.preventDefault();
+    };
+  }
+
+  if (event.srcElement && !event.target)
+    event.target = event.srcElement;
+  if ((event.toElement || event.fromElement) && !event.relatedTarget)
+    event.relatedTarget = event.toElement || event.fromElement;
+  if (event.clientX != undefined && event.pageX == undefined) {
+    event.pageX = event.clientX + document.body.scrollLeft;
+    event.pageY = event.clientY + document.body.scrollTop;
+  }
+  if (event.type == "keypress") {
+    if (event.charCode === 0 || event.charCode == undefined)
+      event.character = String.fromCharCode(event.keyCode);
+    else
+      event.character = String.fromCharCode(event.charCode);
+  }
+
+  return event;
+}
+\end{verbatim}
+  
+Została dodana metoda \texttt{stop}\index{stop}, która anuluje zarówno propagację jak i~domyślną akcję zdarzenia. Niektóre przeglądarki już ją mają i wówczas pozostawiamy ją bez zmian.
+
+  
+Następnie piszemy wygodne opakowania dla metod \texttt{registerEventHandler} i \texttt{unregisterEventHandler}:
+
+  
+\begin{verbatim} 
+function addHandler(node, type, handler) {
+  function wrapHandler(event) {
+    handler(normaliseEvent(event || window.event));
+  }
+  registerEventHandler(node, type, wrapHandler);
+  return {node: node, type: type, handler: wrapHandler};
+}
+
+function removeHandler(object) {
+  unregisterEventHandler(object.node, object.type, object.handler);
+}
+
+var blockQ = addHandler($("textfield"), "keypress", function(event) {
+  if (event.character.toLowerCase() == "q")
+    event.stop();
+});
+\end{verbatim}
+  
+Nowa funkcja \texttt{addHandler} opakowuje podaną jej procedurę w nowej funkcji, dzięki czemu może normalizować obiekty. Zwraca obiekt, który można przekazać do \texttt{removeHandler}, gdy chcemy usunąć wybraną procedurę. Wpisz w polu tekstowym \texttt{q}.
+
+  
+\begin{verbatim} 
+removeHandler(blockQ);
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Mając do dyspozycji funkcję \texttt{addHandler} i funkcję \texttt{dom} z poprzedniego rozdziału możemy wykonywać bardziej zaawansowane działania na dokumentach. W ramach ćwiczenia zaimplementujemy grę o nazwie \textbf{Sokoban}\index{Sokoban}. Jest to klasyk, ale niewykluczone, że wcześniej o niej nie słyszałeś. Reguły są następujące: jest siatka zbudowana ze ścian, pusta przestrzeń oraz jedno lub więcej wyjść. Na siatce znajduje się pewna liczba krat lub kamieni i ludzik, którym steruje gracz. Ludzik ten może poruszać się w poziomie i pionie po pustych kwadratach i może przesuwać kamienie na puste miejsca. Celem gry jest przesunięcie określonej liczby kamieni do wyjść.
+
+  
+Podobnie jak w przypadku terrarium w \hyperref[chap:8]{rozdziale 8}, poziom Sokobana można przedstawić w postaci tekstowej. Zmienna \texttt{sokobanLevels} w oknie \texttt{example\_events.html} zawiera tablicę obiektów reprezentujących poziomy. Każdy poziom ma własność \texttt{field} zawierającą tekstową reprezentację poziomu oraz własność \texttt{boulders} określającą, ilu kamieni trzeba się pozbyć, aby przejść ten poziom.
+
+  
+\begin{verbatim} 
+show(sokobanLevels.length);
+show(sokobanLevels[1].boulders);
+forEach(sokobanLevels[1].field, print);
+ \end{verbatim}
+  
+Na każdym poziomie znaki \texttt{\#} reprezentują ściany, spacje są pustymi kwadratami, znaki \texttt{0} są kamieniami, znak \texttt{@} oznacza pierwotną lokalizację gracza, a \texttt{*} — wyjście.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Jednak w czasie gry nie chcemy patrzeć na tę tekstową reprezentację. Zamiast tego w dokumencie umieścimy tabelę\index{tabela}. Napisałem niewielki arkusz stylów\index{arkusz stylów} (o nazwie \href{http://www.bt4.pl/wp-content/ejs/sokoban.css}{sokoban.css}, jeśli chcesz do niego zajrzeć), za pomocą którego komórkom tabeli zdefiniowałem stałe wymiary, i dodałem go do dokumentu. Każda komórka w tej tabeli zawiera obraz tła reprezentujący typ kwadratu (pusty, ściana lub wyjście). Lokalizacje gracza i kamieni są pokazywane poprzez dodawanie obrazów do komórek tabeli, które mogą być przesuwane zgodnie z potrzebą.
+
+  
+Tabeli tej można by było użyć jako głównej reprezentacji danych ― aby dowiedzieć się, czy wybrana komórka zawiera ścianę, wystarczy sprawdzić czy komórka ta ma obraz tła, a żeby dowiedzieć się, gdzie jest gracz, wystarczy znaleźć węzeł obrazu z odpowiednim atrybutem \texttt{src}. W niektórych przypadkach byłoby to praktyczne rozwiązanie, ale w tym programie zdecydowałem się użyć osobnej struktury danych, dzięki czemu wszystko będzie o~wiele prostsze.
+
+  
+Struktura o której mowa jest dwuwymiarową siatką obiektów reprezentującą kwadraty planszy gry. Każdy z tych obiektów musi zawierać informację o typie swojego tła oraz czy w jego komórce znajduje się kamień lub gracz. Ponadto powinien zawierać referencję do komórki używanej do jego wyświetlenia w dokumencie, aby ułatwić wstawianie i usuwanie obrazów z~tej komórki.
+
+  
+To daje nam dwa rodzaje obiektów — jeden do przechowywania siatki planszy gry, a drugi do reprezentowania poszczególnych komórek tej siatki. Jeśli w grze dodatkowo ma być możliwość przechodzenia do kolejnych poziomów i resetowania planszy, gdy się narobi na niej bałaganu, potrzebny będzie jeszcze obiekt kontrolera tworzący lub usuwający obiekty pól w odpowiednim momencie. Dla wygody wykorzystamy technikę prototypową opisaną na końcu \hyperref[chap:8]{rozdziału 8}, w której typy obiektów będą prototypami, a do tworzenia nowych obiektów będzie używana metoda \texttt{create}, nie operator \texttt{new}.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Zaczniemy od obiektów reprezentujących kwadraty na planszy gry. Ich zadaniem będzie ustawianie tła komórek i dodawanie do nich odpowiednich obrazów. W katalogu \texttt{wp-content/ejs/sokoban/} znajduje się zestaw obrazów, z innej starej gry, które zostaną użyte w tej grze. Prototyp \texttt{Square} może wyglądać tak, jak poniżej.
+
+  
+\begin{verbatim} 
+var Square = {
+  construct: function(character, tableCell) {
+    this.background = "empty";
+    if (character == "#")
+      this.background = "wall";
+    else if (character == "*")
+      this.background = "exit";
+
+    this.tableCell = tableCell;
+    this.tableCell.className = this.background;
+
+    this.content = null;
+    if (character == "0")
+      this.content = "boulder";
+    else if (character == "@")
+      this.content = "player";
+
+    if (this.content != null) {
+      var image = dom("IMG", {src: "/wp-content/ejs/sokoban/" +
+                                   this.content + ".gif"});
+      this.tableCell.appendChild(image);
+    }
+  },
+
+  hasPlayer: function() {
+    return this.content == "player";
+  },
+  hasBoulder: function() {
+    return this.content == "boulder";
+  },
+  isEmpty: function() {
+    return this.content == null && this.background == "empty";
+  },
+  isExit: function() {
+    return this.background == "exit";
+  }
+};
+
+var testSquare = Square.create("@", dom("TD"));
+show(testSquare.hasPlayer());
+ \end{verbatim}
+  
+Argument \texttt{character} konstruktora będzie służył do przekształcania znaków z makiet plansz poziomów na rzeczywiste obiekty \texttt{Square}. Do ustawiania tła komórek używane są klasy CSS (zdefiniowane w pliku sokoban.css), które są przypisane do własności \texttt{className} elementów \texttt{td}.
+
+  
+Metody takie jak \texttt{hasPlayer} i \texttt{isEmpty} pozwalają „odizolować” kod wykorzystujący obiekty tego typu od wewnętrznych szczegółów tych obiektów. Nie są w tym przypadku niezbędne, ale dzięki nim reszta kodu będzie lepiej wyglądać.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 13.2}
+\label{sec:13.2}
+  
+    
+Dodaj metody \texttt{moveContent} i \texttt{clearContent} do prototypu \texttt{Square}. Pierwsza pobiera jako argument inny obiekt \texttt{Square} i przenosi treść kwadratu \texttt{this} do tego argumentu aktualizując własności \texttt{content} i przenosząc węzeł obrazu związany z tą treścią. Metoda ta będzie używana do przesuwania kamieni i~graczy po siatce. Można w niej przyjąć założenie, że kwadrat nie jest aktualnie pusty. Metoda \texttt{clearContent} usuwa zawartość kwadratu nigdzie jej nie przenosząc. Zwróć uwagę, że własność \texttt{content} pustych kwadratów zawiera wartość \texttt{null}.
+
+    
+W rozdziale tym dostępna jest też funkcja \texttt{removeElement} zdefiniowana w \hyperref[chap:12]{rozdziale 12}, dzięki której można wygodnie usuwać węzły. Można przyjąć założenie, że obrazy są jedynymi potomkami komórek tabeli, dzięki czemu dostęp do nich można uzyskiwać np. za pomocą instrukcji \texttt{this.tableCell.lastChild}.
+
+  
+[\hyperref[sol:13.2]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Następny typ obiektowy będzie miał nazwę \texttt{SokobanField}. Jego konstruktorowi będzie się przekazywać obiekt z tablicy \texttt{sokobanLevels}, a jego zadaniem będzie budowanie tabeli z węzłów drzewa DOM i tworzenie siatki obiektów \texttt{Square}. W obiekcie tym realizowana też będzie operacja przesuwania gracza i kamieni. Będzie się to odbywać poprzez metodę \texttt{move} przyjmującą jako argument kierunek, w którym ma zostać wykonany ruch.
+
+  
+Do identyfikacji poszczególnych kwadratów i określania kierunków użyjemy typu obiektowego \texttt{Point} z \hyperref[chap:8]{rozdziału 8}, który jak może pamiętasz ma metodę \texttt{add}.
+
+  
+Baza prototypu pola wygląda tak:
+
+  
+\begin{verbatim} 
+var SokobanField = {
+  construct: function(level) {
+    var tbody = dom("TBODY");
+    this.squares = [];
+    this.bouldersToGo = level.boulders;
+
+    for (var y = 0; y < level.field.length; y++) {
+      var line = level.field[y];
+      var tableRow = dom("TR");
+      var squareRow = [];
+      for (var x = 0; x < line.length; x++) {
+        var tableCell = dom("TD");
+        tableRow.appendChild(tableCell);
+        var square = Square.create(line.charAt(x), tableCell);
+        squareRow.push(square);
+        if (square.hasPlayer())
+          this.playerPos = new Point(x, y);
+      }
+      tbody.appendChild(tableRow);
+      this.squares.push(squareRow);
+    }
+
+    this.table = dom("TABLE", {"class": "sokoban"}, tbody);
+    this.score = dom("DIV", null, "...");
+    this.updateScore();
+  },
+
+  getSquare: function(position) {
+    return this.squares[position.y][position.x];
+  },
+  updateScore: function() {
+    this.score.firstChild.nodeValue = "Pozostało " + this.bouldersToGo + 
+                                      " kamieni.";
+  },
+  won: function() {
+    return this.bouldersToGo <= 0;
+  }
+};
+
+var testField = SokobanField.create(sokobanLevels[0]);
+show(testField.getSquare(new Point(10, 2)).content);
+ \end{verbatim}
+  
+Konstruktor przegląda wiersze i znaki w poziomie oraz zapisuje obiekty \texttt{Square} we własności \texttt{squares}. Gdy napotka kwadrat zawierający gracza, zapisuje tę pozycję jako własność \texttt{playerPos}, dzięki czemu później możemy łatwo odnaleźć położenie gracza. Metoda \texttt{getSquare} służy do znajdowania obiektu \texttt{Square} odpowiadającego określonej pozycji \texttt{x,y} na planszy. Należy zauważyć, że pod uwagę nie są brane krawędzie planszy — aby uniknąć pisania nudnego kodu przyjąłem założenie, że plansza jest prawidłowo otoczona ścianami, które uniemożliwiają wyjście poza nią.
+
+  
+Słowo \texttt{class} w wywołaniu \texttt{dom} tworzącym węzeł \texttt{table} jest umieszczone w~cudzysłowie oznaczającym, że jest to łańcuch. Było to konieczne, ponieważ słowo \texttt{class}\index{class} w języku JavaScript jest zarezerwowane i nie można go używać jako nazwy zmiennej ani własności.
+
+  
+Liczba kamieni, jaką należy usunąć, aby przejść poziom (może być niższa od liczby wszystkich kamieni w poziomie) jest zapisana we własności \texttt{bouldersToGo}. Gdy jakiś kamień trafia do wyjścia, odejmujemy od niej 1 i~sprawdzamy, czy to już koniec gry. Aby gracz wiedział, jak mu idzie musimy jakoś wyświetlać tę informację. Do tego celu został użyty element \texttt{div} z tekstem. Węzły \texttt{div} są kontenerami bez konkretnego domyślnego formatowania. Tekst wyniku można aktualizować za pomocą metody \texttt{updateScore}. Metoda \texttt{won} będzie używana przez obiekt kontrolera do określania końca gry, aby gracz mógł przejść do następnego poziomu.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Jeśli chcemy, aby plansza gry i wynik były widoczne, musimy je jakoś dodać do dokumentu. Do tego posłuży nam metoda \texttt{place}. Napiszemy też metodę \texttt{remove} do usuwania planszy, gdy z nią skończymy.
+
+  
+\begin{verbatim} 
+SokobanField.place = function(where) {
+  where.appendChild(this.score);
+  where.appendChild(this.table);
+};
+SokobanField.remove = function() {
+  removeElement(this.score);
+  removeElement(this.table);
+};
+
+testField.place(document.body);
+ \end{verbatim}
+  
+Jeśli wszystko dobrze poszło, powinieneś teraz widzieć planszę gry Sokoban.
+
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 13.3}
+\label{sec:13.3}
+  
+    
+Na razie jednak na planszy tej niewiele się dzieje. Dodamy metodę o nazwie \texttt{move}. Metoda ta przyjmuje jako argument obiekt \texttt{Point} określający ruch (np. \texttt{-1,0}, aby przejść w lewo) i jej zadaniem jest przesuwanie elementów gry po planszy.
+
+    
+Poprawny sposób implementacji jest następujący: własności \texttt{playerPos} można użyć do sprawdzenia, gdzie gracz chce się ruszyć. Jeśli w tym miejscu znajduje się kamień, sprawdzamy kwadrat za tym kamieniem. Jeśli na nim znajduje się wyjście, usuwamy kamień i aktualizujemy wynik. Jeśli jest tam puste miejsce, przesuwamy na nie kamień. Następnie próbujemy przesunąć gracza. Jeśli kwadrat, na który gracz próbuje się przemieścić nie jest pusty, ignorujemy próbę ruchu.
+
+  
+[\hyperref[sol:13.3]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+Cała logika gry jest już gotowa i pozostało tylko ją „ożywić” za pomocą kontrolera. Kontrolerem będzie typ obiektowy o nazwie \texttt{SokobanGame}. Do jego zadań będzie należeć:
+
+  \begin{itemize}
+    \item przygotowanie miejsca na planszę gry,
+    \item tworzenie i usuwanie obiektów \texttt{SokobanField},
+    \item przechwytywanie zdarzeń klawiszy i wywoływanie metody \texttt{move} na bieżącym polu z odpowiednim argumentem,
+    \item pamiętanie numeru bieżącego poziomu i przechodzenie do kolejnego poziomu po wygraniu aktualnego,
+    \item dodawanie przycisków do resetowania bieżącego poziomu i całej gry (powrót do poziomu 0).
+  \end{itemize}
+  
+Zaczniemy od niedokończonego prototypu.
+
+  
+\begin{verbatim} 
+var SokobanGame = {
+  construct: function(place) {
+    this.level = null;
+    this.field = null;
+
+    var newGame = dom("BUTTON", null, "Nowa gra");
+    addHandler(newGame, "click", method(this, "newGame"));
+    var reset = dom("BUTTON", null, "Resetuj poziom");
+    addHandler(reset, "click", method(this, "reset"));
+    this.container = dom("DIV", null,
+                         dom("H1", null, "Sokoban"),
+                         dom("DIV", null, newGame, " ", reset));
+    place.appendChild(this.container);
+
+    addHandler(document, "keydown", method(this, "keyDown"));
+    this.newGame();
+  },
+
+  newGame: function() {
+    this.level = 0;
+    this.reset();
+  },
+  reset: function() {
+    if (this.field)
+      this.field.remove();
+    this.field = SokobanField.create(sokobanLevels[this.level]);
+    this.field.place(this.container);
+  },
+
+  keyDown: function(event) {
+    // To trzeba jeszcze napisać
+  }
+};
+ \end{verbatim}
+  
+Konstruktor ten tworzy element \texttt{div} na planszę, dwa przyciski oraz tytuł. Zwróć uwagę na sposób użycia \texttt{method} do powiązania metod obiektu \texttt{this} ze zdarzeniami.
+
+  
+Grę Sokoban możemy dodać do dokumentu w następujący sposób:
+
+  
+\begin{verbatim} 
+var sokoban = SokobanGame.create(document.body);
+ \end{verbatim}
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 13.4}
+\label{sec:13.4}
+  
+    
+Pozostało jeszcze tylko dodać procedurę obsługi zdarzeń klawiszowych. Zastąpimy metodę \texttt{keyDown} prototypu metodą wykrywającą naciśnięcia klawiszy strzałek i przesuwającą gracza w odpowiednim kierunku. Przyda się nam do tego poniższy obiekt \texttt{Dictionary}:
+
+    
+\begin{verbatim} 
+var arrowKeyCodes = new Dictionary({
+  37: new Point(-1, 0), // w lewo
+  38: new Point(0, -1), // do góry
+  39: new Point(1, 0),  // w prawo
+  40: new Point(0, 1)   // w dół
+});
+ \end{verbatim}
+    
+Po obsłużeniu zdarzenia naciśnięcia klawisza strzałki sprawdzamy \texttt{this.field.won()}, aby dowiedzieć się czy nie był to ruch zwycięski. Jeśli gracz wygrał, wyświetlamy wiadomość przy użyciu \texttt{alert} i przechodzimy do następnego poziomu. Jeśli nie ma kolejnego poziomu (sprawdź \texttt{sokobanLevels.length}), uruchamiamy grę od nowa.
+
+    
+Zdarzenia naciśnięć klawiszy po obsłużeniu powinno się wyłączyć, ponieważ jeśli tego nie zrobimy, naciśnięcie strzałek w górę i w dół będzie powodować denerwujące przewijanie okna.
+
+  
+[\hyperref[sol:13.4]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\section*{Ćwiczenie 13.5}
+\label{sec:13.5}
+  
+    
+Kamienie wypchnięte do wyjścia nagle znikają. Zmodyfikuj metodę \texttt{Square.clearContent} tak, aby przy usuwaniu kamieni była wyświetlana animacja spadającego kamienia. Niech kamień najpierw robi się mniejszy, a dopiero potem znika całkowicie. Możesz użyć własności \texttt{style.width = "50\%"} i podobnego ustawienia \texttt{style.height}, aby zmniejszyć obraz o połowę.
+
+  
+[\hyperref[sol:13.5]{pokaż rozwiązanie}]
+  
+
+
+\begin{center}
+• • • • •
+\end{center}
+
+  
+\index{onfocus}\index{onblur}Inne przydatne rodzaje zdarzeń to \texttt{focus}\index{focus} i \texttt{blur}\index{blur} wyzwalane na elementach, które można aktywować (ang. focus), a więc np. polach wejściowych formularzy. Zdarzenie \texttt{focus} ma miejsce, gdy element jest aktywowany, np. kliknięciem. Natomiast \texttt{blur} to termin JavaScript określający „dezaktywację” i zdarzenie to jest wyzwalane, gdy element przestaje być aktywny.
+
+  
+\begin{verbatim} 
+addHandler($("textfield"), "focus", function(event) {
+  event.target.style.backgroundColor = "yellow";
+});
+addHandler($("textfield"), "blur", function(event) {
+  event.target.style.backgroundColor = "";
+});
+ \end{verbatim}
+  
+\index{onchange}Kolejnym zdarzeniem związanym z polami wejściowymi formularzy jest \texttt{change}\index{change}. Jest ono wyzwalane w momencie zmiany treści pola wejściowego, z~tym że w przypadku niektórych pól, np. tekstowych, wyzwolenie tego zdarzenia następuje dopiero, gdy element przestaje być aktywny.
+
+  
+\begin{verbatim} 
+addHandler($("textfield"), "change", function(event) {
+  print("Treść pola wejściowego zmieniła się na „",
+        event.target.value, "”.");
+});
+ \end{verbatim}
+  
+Możesz wpisać co tylko chcesz, a zdarzenie i tak zostanie wyzwolone, gdy klikniesz gdzieś poza polem, naciśniesz klawisz Tab albo zrobisz jeszcze coś innego, co będzie miało podobny skutek.
+
+  
+Formularze mają też zdarzenie \texttt{submit}\index{submit} wyzwalane w momencie zatwierdzenia formularza. Można je wykorzystać, aby uniemożliwić zatwierdzenie formularza. Dzięki temu można \emph{o wiele} lepiej przeprowadzić weryfikację danych formularza, o czym była mowa w poprzednim rozdziale. Wystarczy zarejestrować procedurę obsługi zdarzeń \texttt{submit}, która zatrzymuje to zdarzenie, gdy formularz jest błędnie wypełniony. Gdy użytkownik będzie miał wyłączoną obsługę JavaScriptu, formularz nadal będzie działał, tylko bez natychmiastowej weryfikacji danych.
+
+  
+Obiekty okien mają zdarzenie \texttt{load}\index{load}\index{onload} wyzwalane po całkowitym załadowaniu dokumentu. Można je wykorzystać do zainicjowania jakichś działań, które muszą poczekać aż cały dokument będzie dostępny. Na przykład skrypty działające na tej stronie przeglądają cały bieżący rozdział, aby ukryć rozwiązania ćwiczeń. Nie da się tego zrobić, jeśli ćwiczenia nie są wczytane. Istnieje też zdarzenie \texttt{unload}\index{unload} wyzwalane, gdy użytkownik opuszcza dokument, ale jego obsługa w niektórych przeglądarkach jest nieprawidłowa.
+
+  
+W większości przypadków kwestię rozmieszczenia elementów w dokumencie najlepiej jest pozostawić do rozwiązania przeglądarce, ale niektóre efekty da się uzyskać tylko poprzez ustawianie wymiarów niektórych węzłów dokumentu za pomocą JavaScriptu. Gdy będziesz to robić, pamiętaj żeby dodatkowo nasłuchiwać zdarzeń \texttt{resize}\index{resize}\index{onresize} okna i obliczać wymiary elementów przy każdej zmianie rozmiaru okna.
